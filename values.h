@@ -106,4 +106,5 @@ val_t val_wrap_port(val_port_t* c);
 
 val_str_t *create_string(const char *);
 void type_error(const char *loc, type_t want, type_t got);
+void type_check(const char *loc, type_t want, val_t *value);
 #endif

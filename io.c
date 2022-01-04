@@ -51,15 +51,18 @@ val_t print_codepoint_out(val_t c)
 val_t open_input_file(val_t in) {
   FILE *f;
   char *buf;
+  type_check("open_input_file", T_STR, &in);
   val_str_t* fn = val_unwrap_str(in);
   buf = calloc((fn->len*4)+1, 1);
   if (!buf)
-    error_handler();
+    error_handler(NULL);
   utf8_encode_string(fn, buf);
 
   f = fopen(buf, "rb");
-  if (!f)
-    error_handler();
+  if (!f) {
+    perror("open_input_file");
+    error_handler(NULL);
+  }
 
   free(buf);
 

@@ -10,6 +10,12 @@ const char* type_strs[13] =
         "Vect", "Str", "Symb", "Proc",
         "Struct"};
 
+void type_check(const char *loc, type_t want, val_t *value) {
+    type_t got = val_typeof(*value);
+    if (got != want)
+        type_error(loc, want, got);
+}
+
 
 void type_error(const char *loc, type_t want, type_t got) {
     #define FMT "%s: Type Error! Wanted: %s, got: %s\n"
