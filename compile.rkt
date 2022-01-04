@@ -89,6 +89,7 @@
          + - < = cons eq? make-vector vector-ref
          make-string string-ref string-append
          quotient remainder set-box!
+         read-bytes
          bitwise-and bitwise-ior bitwise-xor arithmetic-shift         
          ;; Op3
          vector-set!))

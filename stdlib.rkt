@@ -30,12 +30,14 @@
          string->uninterned-symbol open-input-file
          write-char error integer? procedure?
          eq-hash-code
+         
          ;; Op2
          + - < = cons eq? make-vector vector-ref
          exec
          make-string string-ref string-append
          quotient remainder set-box!
          bitwise-and bitwise-ior bitwise-xor arithmetic-shift
+         read-bytes
          ;; Op3
          vector-set!)
 
@@ -201,10 +203,24 @@
 (define (bitwise-xor x y) (%bitwise-xor x y)) ;; should be n-ary
 (define (arithmetic-shift x y) (%arithmetic-shift x y))
 
+;; Port -> Vector -> Void
+;; This is embarrisingly inefficient and
+;; we should replace it :)
+(define (read-bytes p v)
+  (read-bytes-i p v 0))
+
+(define (read-bytes-i p v i)
+  (if (< i (vector-length v))
+      (begin
+        (vector-set! v i (%read-byte-port p))
+        (read-bytes-i p v (add1 i)))
+      (void)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op3
 (define (vector-set! v i x)
   (%vector-set! v i x))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

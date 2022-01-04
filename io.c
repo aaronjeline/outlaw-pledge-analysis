@@ -91,6 +91,7 @@ populate_buffer(val_port_t *p)
   return p->len > 0;
 }
 
+
 val_t read_byte_port(val_t port)
 {
   int has_bytes;
