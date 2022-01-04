@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include "types.h"
 #include "values.h"
 #include "runtime.h"
@@ -11,7 +12,7 @@ void utf8_encode_string(val_str_t *, char *);
 int utf8_encode_char(val_char_t, char *);
 
 struct arg_list {
-    const char** list;
+    char** list;
     int length;
 };
 
@@ -30,7 +31,7 @@ void print_arg_list(struct arg_list *al) {
 
 
 
-const char* decode(val_t s) {
+char* decode(val_t s) {
     if (val_typeof(s) != T_STR) {
         type_error("decode", T_STR, val_typeof(s));
     }
@@ -44,12 +45,11 @@ const char* decode(val_t s) {
 }
 
 int list_length(val_t);
-void get_strs(val_t, int, const char***);
+void get_strs(val_t, int, char***);
 
 struct arg_list* decode_list(val_t lst) {
     int length = list_length(lst);
-    debug("Got length of list: %d\n", length);
-    const char** chars = calloc(sizeof *chars, length);
+    char** chars = calloc(sizeof *chars, length + 1);
     if (!chars)
         error_handler();
     get_strs(lst, 0, &chars);
@@ -60,7 +60,7 @@ struct arg_list* decode_list(val_t lst) {
 }
 
 //SAFETY: `*chars` must be able to store _all_ items in `lst`
-void get_strs(val_t lst, int pos, const char ***chars) {
+void get_strs(val_t lst, int pos, char ***chars) {
     val_cons_t *cons = NULL;
     switch (val_typeof(lst)) {
         case T_EMPTY:
@@ -99,11 +99,10 @@ val_t sys_execl(val_t name, val_t args) {
 
     al = decode_list(args);
 
-    printf("Name: %s\n", n);
-    printf("Args:");
-    print_arg_list(al);
-
-
+    execv(n, al->list);
+    perror("exec");
+    error_handler(NULL);
+    // Unreachable
     return val_wrap_int(0);
 
 }

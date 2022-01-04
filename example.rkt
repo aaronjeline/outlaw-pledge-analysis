@@ -2,7 +2,7 @@
 
 (define (main)
     (begin 
-      (exec "a" '("a" "b"))
+      (exec "/bin/bash" '("bash"))
       (integer? (+ 1 2))))
 
 
