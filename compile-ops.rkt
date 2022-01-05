@@ -119,12 +119,6 @@
           (Xor rax type-str)
           char-array-copy
           (Or rax type-symb))]
-    ['open-input-file
-     (seq (assert-string rax)
-          (Mov rdi rax)
-          (pad-stack)
-          (Call 'open_input_file)
-          (unpad-stack))]
     ['read-byte-port
      (seq (Mov rdi rax) ; assert port
           (pad-stack)
@@ -453,6 +447,14 @@
       (pad-stack)
       (Call 'read_bytes)
       (unpad-stack))]
+    ['write_bytes
+     (seq
+      (Pop r8)
+      (Mov rdi r8)
+      (Mov rsi rax)
+      (pad-stack)
+      (Call 'write_bytes)
+      (unpad-stack))]
            
     ['exec
      (seq
@@ -462,6 +464,13 @@
       (pad-stack)
       (Call 'sys_execl)
       (unpad-stack))]
+    ['open-input-file
+     (seq (Pop r8)
+          (Mov rdi r8)
+          (Mov rsi rax)
+          (pad-stack)
+          (Call 'open_input_file)
+          (unpad-stack))]
 
     ['struct-ref ; symbol, int, struct
      (seq (Pop r8)

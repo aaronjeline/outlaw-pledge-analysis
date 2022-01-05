@@ -180,15 +180,32 @@ val_str_t *create_string(const char *str) {
 
 void utf8_encode_string(val_str_t *, char *);
 int utf8_encode_char(val_char_t, char *);
-char* decode(val_t s) {
-    if (val_typeof(s) != T_STR) {
-        type_error("decode", T_STR, val_typeof(s));
-    }
-    val_str_t *n = val_unwrap_str(s);
-    char* buf = calloc((n->len*4)+1, 1);
+void utf8_encode_codepoints(uint64_t len, val_char_t *codepoints, char *buffer);
+
+char *decode_raw(uint64_t len, val_char_t *codepoints) {
+    char* buf = calloc((len*4)+1, 1);
     if (!buf)
         error_handler();
-    utf8_encode_string(n, buf);
+    utf8_encode_codepoints(len, codepoints, buf);
 
     return buf;
+    
+}
+
+char* decode(val_t s) {
+    type_t t = val_typeof(s);
+    val_str_t *str;
+    val_symb_t *symb;
+
+    switch (t) {
+        case T_STR:
+            str = val_unwrap_str(s);
+            return decode_raw(str->len, str->codepoints);
+        case T_SYMB:
+            symb = val_unwrap_symb(s);
+            return decode_raw(symb->len, symb->codepoints);
+        default:
+            type_error("decode", T_STR, t);
+            return NULL;
+    }
 }

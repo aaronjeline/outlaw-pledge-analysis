@@ -38,11 +38,14 @@
          quotient remainder set-box!
          bitwise-and bitwise-ior bitwise-xor arithmetic-shift
          read-bytes
+         write-bytes
          ;; Op3
          vector-set!)
 
 (require (prefix-in % racket)
-         (rename-in racket [read-byte %read-byte-port]))
+         (rename-in racket
+                    [read-byte %read-byte-port]
+                    [write-bytes %write-bytes-port]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -90,7 +93,7 @@
 (define (string->symbol x) (%string->symbol x))
 (define (symbol? x) (%symbol? x))
 (define (string->uninterned-symbol x) (%string->uninterned-symbol x))
-(define (open-input-file x) (%open-input-file x))
+(define (open-input-file x flags) (%open-input-file x flags))
 (define (%exec n args)
   (error "%exec\n"))
 (define (exec n args) (%exec n args))
@@ -210,6 +213,10 @@
 (define (%read_bytes p v)
   (error "unimplemented!"))
 
+(define (write-bytes p v)
+  (%write_bytes p v))
+
+(define (%write_bytes p v) (error ""))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -90,6 +90,7 @@
          make-string string-ref string-append
          quotient remainder set-box!
          read-bytes
+         write-bytes
          bitwise-and bitwise-ior bitwise-xor arithmetic-shift         
          ;; Op3
          vector-set!))
@@ -112,7 +113,8 @@
          print_codepoint_out
          system_type
          sys_execl
-         read_bytes)))
+         read_bytes
+         write_bytes)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))

@@ -72,7 +72,45 @@ val_port_t *initialize_port(int fd) {
     return p;
 }
 
-val_t open_input_file(val_t in) {
+#define ENTRY(str,flg) else if (strncmp(s, str, strlen(s)) == 0) { result = flg; }
+#define MATCH(s) if (0) { ; }
+#define OTHERWISE(e) else { e; }
+
+int parse_flag(val_t flag) {
+    type_check("parse_flag", T_SYMB, &flag);
+    char *s = decode(flag);
+    int result;
+
+    MATCH(s)
+    ENTRY("read", O_RDONLY)
+    ENTRY("write", O_WRONLY)
+    ENTRY("truncate", O_TRUNC)
+    ENTRY("create", O_CREAT)
+    ENTRY("append", O_APPEND)
+    OTHERWISE(
+        error_handler(create_string("Not a flag!"))
+    )
+
+    free(s);
+    return result;
+}
+
+int parse_flags(val_t flags) {
+    type_t t = val_typeof(flags);
+    val_cons_t *cons;
+    switch (t) {
+        case T_EMPTY:
+            return 0;
+        case T_CONS:
+            cons = val_unwrap_cons(flags);
+            return parse_flag(cons->fst) | parse_flags(cons->snd);
+        default:
+            type_error("parse_flags", T_CONS, t);
+            return 0;
+    }
+}
+
+val_t open_input_file(val_t in, val_t flags) {
     int fd; 
     char *buf;
     type_check("open_input_file", T_STR, &in);
@@ -82,7 +120,7 @@ val_t open_input_file(val_t in) {
         error_handler(NULL);
     utf8_encode_string(fn, buf);
 
-    fd = open(buf, O_RDONLY);
+    fd = open(buf, parse_flags(flags));
     if (fd < 0) {
         perror("open_input_file");
         error_handler(NULL);
@@ -100,15 +138,41 @@ val_t read_bytes(val_t port, val_t vec) {
     type_check("read_bytes", T_VECT, &vec);
     val_vect_t *vect = val_unwrap_vect(vec);
     val_port_t *p = val_unwrap_port(port);
-    int i,len = vect->len;
+    int i,got,len = vect->len;
     char *buf = malloc(len);
-    read(p->fd, buf, len);
+    got = read(p->fd, buf, len);
 
+    if (got < 0) 
+        errno_die("read_bytes");
+
+    if (got == 0)
+        return val_wrap_eof();
+        
     for (i = 0; i < len; i++) 
         vect->elems[i] = val_wrap_int( (unsigned int) buf[i]);
 
-    return val_wrap_void();    
+    return val_wrap_int(got);    
 }
+
+val_t write_bytes(val_t port, val_t vec) {
+    type_check("write_bytes", T_VECT, &vec);
+    val_vect_t *vect = val_unwrap_vect(vec);
+    val_port_t *p = val_unwrap_port(port);
+
+    char *buf = malloc(vect->len);
+    int i, written;
+
+    for (i = 0; i < vect->len; i++)
+        buf[i] = (char) val_unwrap_int(vect->elems[i]);
+
+    written = write(p->fd, buf, vect->len);
+
+    if (written < 0)
+        errno_die("write_bytes");
+
+    return val_wrap_int(written);
+}
+
 
 val_t read_byte_port(val_t port)
 {
@@ -132,6 +196,7 @@ val_t read_byte_port(val_t port)
         return val_wrap_int((unsigned char) c);
     }
 }
+
 
 val_t peek_byte_port(val_t port, val_t skip)
 {

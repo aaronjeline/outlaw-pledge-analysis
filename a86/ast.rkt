@@ -4,6 +4,7 @@
 (struct Text   ())
 (struct Data   ())
 
+
 (struct Global (x))
 (struct Label  (x))
 (struct Call   (x))

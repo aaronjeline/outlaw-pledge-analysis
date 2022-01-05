@@ -874,11 +874,15 @@ int utf8_encode_char(val_char_t c, char *buffer)
   }
 }
 
-void utf8_encode_string(val_str_t *s, char *buffer)
-{
+void utf8_encode_codepoints(uint64_t len, val_char_t *codepoints, char *buffer) {
   uint64_t i;
-  for (i = 0; i < s->len; i++) {
-    buffer += utf8_encode_char(s->codepoints[i], buffer);
+  for (i = 0; i < len; i++) {
+    buffer += utf8_encode_char(codepoints[i], buffer);
   }
   *buffer = '\0';
+}
+
+void utf8_encode_string(val_str_t *s, char *buffer)
+{
+    utf8_encode_codepoints(s->len, s->codepoints, buffer);
 }

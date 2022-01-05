@@ -330,8 +330,7 @@
          box unbox empty? cons? box? car cdr
          vector? vector-length string? string-length
          symbol->string string->symbol symbol?
-         number->string string->uninterned-symbol
-         open-input-file
+         number->string string->uninterned-symbol       
          read-byte-port
          write-char
          error integer?
@@ -342,7 +341,9 @@
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
       string-append set-box! quotient remainder
       exec
+      open-input-file
       read_bytes
+      write_bytes
       bitwise-and bitwise-ior bitwise-xor arithmetic-shift
       peek-byte))
 (define op3
