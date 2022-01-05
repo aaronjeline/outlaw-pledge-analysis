@@ -342,6 +342,7 @@
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
       string-append set-box! quotient remainder
       exec
+      read_bytes
       bitwise-and bitwise-ior bitwise-xor arithmetic-shift
       peek-byte))
 (define op3

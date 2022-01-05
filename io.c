@@ -1,7 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <inttypes.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "types.h"
 #include "values.h"
 #include "runtime.h"
@@ -10,6 +16,11 @@
 
 void utf8_encode_string(val_str_t *, char *);
 int utf8_encode_char(val_char_t, char *);
+
+void errno_die(char *place) {
+    perror(place);
+    error_handler(NULL);
+}
 
 val_t read_byte(void)
 {
@@ -48,85 +59,116 @@ val_t print_codepoint_out(val_t c)
   return val_wrap_void();
 }
 
+val_port_t *initialize_port(int fd) {
+    val_port_t *p = malloc(sizeof *p);
+    p->fd = fd;
+    p->closed = 0;
+    val_symb_t* s;
+    s = calloc(6+2, sizeof(val_char_t));
+    s->len = 4;
+    memcpy(s->codepoints, (val_char_t[]){'p', 'o', 'r', 't'}, 4 * 4);
+    p->symbol = val_wrap_symb(s);
+
+    return p;
+}
+
 val_t open_input_file(val_t in) {
-  FILE *f;
-  char *buf;
-  type_check("open_input_file", T_STR, &in);
-  val_str_t* fn = val_unwrap_str(in);
-  buf = calloc((fn->len*4)+1, 1);
-  if (!buf)
-    error_handler(NULL);
-  utf8_encode_string(fn, buf);
+    int fd; 
+    char *buf;
+    type_check("open_input_file", T_STR, &in);
+    val_str_t* fn = val_unwrap_str(in);
+    buf = calloc((fn->len*4)+1, 1);
+    if (!buf)
+        error_handler(NULL);
+    utf8_encode_string(fn, buf);
 
-  f = fopen(buf, "rb");
-  if (!f) {
-    perror("open_input_file");
-    error_handler(NULL);
-  }
+    fd = open(buf, O_RDONLY);
+    if (fd < 0) {
+        perror("open_input_file");
+        error_handler(NULL);
+    }
 
-  free(buf);
+    free(buf);
 
-  val_symb_t* s;
-  s = calloc(6+2, sizeof(val_char_t));
-  s->len = 4;
-  memcpy(s->codepoints, (val_char_t[]){'p', 'o', 'r', 't'}, 4 * 4);
 
-  val_port_t *p;
-  p = calloc(1, sizeof(struct val_port_t));
-  p->symbol = val_wrap_symb(s);
-  p->fp = f;
 
-  return val_wrap_port(p);
+     return val_wrap_port(initialize_port(fd));
 }
 
-static int
-populate_buffer(val_port_t *p)
-{
-  if (p->offset < p->len)
-    return 1;
 
-  p->len = fread(p->buf, 1, port_buffer_bytes, p->fp);
-  p->offset = 0;
+val_t read_bytes(val_t port, val_t vec) {
+    type_check("read_bytes", T_VECT, &vec);
+    val_vect_t *vect = val_unwrap_vect(vec);
+    val_port_t *p = val_unwrap_port(port);
+    int i,len = vect->len;
+    char *buf = malloc(len);
+    read(p->fd, buf, len);
 
-  return p->len > 0;
+    for (i = 0; i < len; i++) 
+        vect->elems[i] = val_wrap_int( (unsigned int) buf[i]);
+
+    return val_wrap_void();    
 }
-
 
 val_t read_byte_port(val_t port)
 {
-  int has_bytes;
-  char c;
-  val_port_t *p = val_unwrap_port(port);
+    ssize_t got;
+    char c;
+    val_port_t *p = val_unwrap_port(port);
 
-  if (p->closed)
-    error_handler();
+    if (p->closed)
+        error_handler(create_string("Reading from closed file"));
 
-  has_bytes = populate_buffer(p);
-  if (!has_bytes)
-    return val_wrap_eof();
+    got = read(p->fd, &c, 1);
 
-  c = p->buf[p->offset];
-  p->offset++;
-
-  return val_wrap_int((unsigned char)c);
+    if (got < 0) {
+        perror("read_byte_port");
+        error_handler(NULL);
+        // Unreachable
+        return val_wrap_void();
+    } else if (got == 0) {
+        return val_wrap_eof();
+    } else {
+        return val_wrap_int((unsigned char) c);
+    }
 }
 
 val_t peek_byte_port(val_t port, val_t skip)
 {
-  int has_bytes;
-  char c;
-  val_port_t *p = val_unwrap_port(port);
-
-  int64_t sk = val_unwrap_int(skip);
-
-  if (p->closed)
-    error_handler();
-
-  has_bytes = populate_buffer(p);
-  if (!has_bytes)
-    return val_wrap_eof();
-
-  c = p->buf[p->offset+sk]; // FIXME: unsafe
-
-  return val_wrap_int((unsigned char)c);
+    error_handler(create_string("peek byte port unimplemented!"));
+    return val_wrap_void(); // unreachable
 }
+
+
+val_t create_socket(void) {
+    int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (fd < 0)
+        errno_die("create_socket");
+
+    return val_wrap_port(initialize_port(fd));
+}
+
+val_t socket_connect(val_t sock, val_t address, val_t port) {
+    val_port_t *socket = val_unwrap_port(sock);
+    char *addr = decode(address);
+    type_check("socket_connect", T_INT, &port);
+    int p = val_unwrap_int(port);
+    struct sockaddr_in servAddr;
+    memset(&servAddr, 0, sizeof servAddr);
+    servAddr.sin_family = AF_INET;
+    
+    int chk = inet_pton(AF_INET, addr, &servAddr.sin_addr.s_addr);
+    if (chk < 0)
+        errno_die("inet_pton");
+    else if (chk == 0)
+        error_handler(create_string("Invalid Address"));
+
+    servAddr.sin_port = htons(p);
+    chk = connect(socket->fd, (struct sockaddr*) &servAddr, sizeof servAddr);
+    if (chk < 0)
+        errno_die("connect()");
+
+    return val_wrap_void();
+}
+
+

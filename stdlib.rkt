@@ -204,17 +204,13 @@
 (define (arithmetic-shift x y) (%arithmetic-shift x y))
 
 ;; Port -> Vector -> Void
-;; This is embarrisingly inefficient and
-;; we should replace it :)
 (define (read-bytes p v)
-  (read-bytes-i p v 0))
+  (%read_bytes p v))
 
-(define (read-bytes-i p v i)
-  (if (< i (vector-length v))
-      (begin
-        (vector-set! v i (%read-byte-port p))
-        (read-bytes-i p v (add1 i)))
-      (void)))
+(define (%read_bytes p v)
+  (error "unimplemented!"))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op3

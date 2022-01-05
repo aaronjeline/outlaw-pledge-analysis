@@ -31,18 +31,6 @@ void print_arg_list(struct arg_list *al) {
 
 
 
-char* decode(val_t s) {
-    if (val_typeof(s) != T_STR) {
-        type_error("decode", T_STR, val_typeof(s));
-    }
-    val_str_t *n = val_unwrap_str(s);
-    char* buf = calloc((n->len*4)+1, 1);
-    if (!buf)
-        error_handler();
-    utf8_encode_string(n, buf);
-
-    return buf;
-}
 
 int list_length(val_t);
 void get_strs(val_t, int, char***);

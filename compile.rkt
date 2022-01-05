@@ -111,7 +111,8 @@
          is_char_whitespace
          print_codepoint_out
          system_type
-         sys_execl)))
+         sys_execl
+         read_bytes)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))

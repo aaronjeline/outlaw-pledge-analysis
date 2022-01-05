@@ -55,11 +55,8 @@ typedef struct val_struct_t {
 } val_struct_t;
 typedef struct val_port_t {
   val_t symbol;
-  FILE *fp;
-  uint8_t len;
-  uint8_t offset;
-  int8_t closed;
-  char buf[];
+  int fd;
+  int closed;
 } val_port_t;
 
 /* return the type of x */
@@ -107,4 +104,5 @@ val_t val_wrap_port(val_port_t* c);
 val_str_t *create_string(const char *);
 void type_error(const char *loc, type_t want, type_t got);
 void type_check(const char *loc, type_t want, val_t *value);
+char* decode(val_t s);
 #endif

@@ -178,3 +178,17 @@ val_str_t *create_string(const char *str) {
     return v;
 }
 
+void utf8_encode_string(val_str_t *, char *);
+int utf8_encode_char(val_char_t, char *);
+char* decode(val_t s) {
+    if (val_typeof(s) != T_STR) {
+        type_error("decode", T_STR, val_typeof(s));
+    }
+    val_str_t *n = val_unwrap_str(s);
+    char* buf = calloc((n->len*4)+1, 1);
+    if (!buf)
+        error_handler();
+    utf8_encode_string(n, buf);
+
+    return buf;
+}

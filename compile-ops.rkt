@@ -164,6 +164,7 @@
           (unpad-stack))]
 
     ;; Op2
+    
     ['+
      (seq (Pop r8)
           (assert-integer r8)
@@ -444,6 +445,15 @@
           (pad-stack)
           (Call 'peek_byte_port)
           (unpad-stack))]
+    ['read_bytes
+     (seq
+      (Pop r8)
+      (Mov rdi r8)
+      (Mov rsi rax)
+      (pad-stack)
+      (Call 'read_bytes)
+      (unpad-stack))]
+           
     ['exec
      (seq
       (Pop r8)
