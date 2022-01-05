@@ -30,7 +30,9 @@
          string->uninterned-symbol open-input-file
          write-char error integer? procedure?
          eq-hash-code
-         
+         string->vector
+         vector->string
+         close
          ;; Op2
          + - < = cons eq? make-vector vector-ref
          exec
@@ -50,6 +52,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op0
+
+(define (close p)
+  (%close p))
+
+(define (%close p) (undefined))
+
 (define read-byte
   (case-lambda
     [() (%read-byte)]
@@ -116,6 +124,17 @@
     [64 (arithmetic-shift y 6)]
     [_ (error "unimplemented multiplication")]))
 
+(define (undefined) (error "undefined"))
+
+(define (vector->string v)
+  (%vector->string v))
+
+(define (%vector->string v) (undefined))
+
+(define (string->vector s)
+  (%string->vector s))
+
+(define (%string->vector s) (undefined))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op2

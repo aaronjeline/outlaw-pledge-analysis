@@ -130,6 +130,13 @@
           (Mov rdi rax)
           (pad-stack)
           (Call 'raise_error))]
+    ['vector->string
+     (op1 'vector_to_string)]
+    ['string->vector
+     (op1 'string_to_vector)]
+    ['close
+     (op1 'close_port)]     
+      
     ['integer?
      (type-pred mask-int type-int)]
     ['procedure?
@@ -486,6 +493,30 @@
           (Sal r8 3)
           (Add rax r8)
           (Mov rax (Offset rax 0)))]))
+
+(define (valid-label? l)
+  (and (symbol? l)
+       (andmap
+        (λ (c) (not (char=? c #\-)))
+        (string->list (symbol->string l)))))
+
+(define/contract (op1 label)
+  (-> valid-label? any/c)
+  (seq
+   (Mov rdi rax)
+   (pad-stack)
+   (Call label)
+   (unpad-stack)))
+
+(define/contract (op2 label)
+  (-> valid-label? any/c)
+  (seq (Pop r8)
+       (Mov rdi r8)
+       (Mov rsi rax)
+       (pad-stack)
+       (Call label)
+       (unpad-stack)))
+
 
 ;; Nat -> Asm
 ;; Emit instructions for creating a structure of length n

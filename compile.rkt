@@ -84,6 +84,7 @@
          open-input-file
          write-char error integer? procedure?
          eq-hash-code char-alphabetic? char-whitespace? displayln write-string
+         vector->string string->vector close
          ;; Op2
          exec
          + - < = cons eq? make-vector vector-ref
@@ -114,7 +115,10 @@
          system_type
          sys_execl
          read_bytes
-         write_bytes)))
+         write_bytes
+         vector_to_string
+         string_to_vector
+         close_port)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))

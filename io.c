@@ -133,13 +133,24 @@ val_t open_input_file(val_t in, val_t flags) {
      return val_wrap_port(initialize_port(fd));
 }
 
+void check_open(val_port_t *p) {
+    if (p->closed) {
+        error_handler(create_string("File is closed!"));
+    }
+}
 
 val_t read_bytes(val_t port, val_t vec) {
+    val_vect_t *vect;
+    val_port_t *p;
+    int i,got,len;
+    char *buf;
+
     type_check("read_bytes", T_VECT, &vec);
-    val_vect_t *vect = val_unwrap_vect(vec);
-    val_port_t *p = val_unwrap_port(port);
-    int i,got,len = vect->len;
-    char *buf = malloc(len);
+    vect = val_unwrap_vect(vec);
+    p = val_unwrap_port(port);
+    check_open(p);
+    len = vect->len;
+    buf = malloc(len);
     got = read(p->fd, buf, len);
 
     if (got < 0) 
@@ -155,12 +166,17 @@ val_t read_bytes(val_t port, val_t vec) {
 }
 
 val_t write_bytes(val_t port, val_t vec) {
-    type_check("write_bytes", T_VECT, &vec);
-    val_vect_t *vect = val_unwrap_vect(vec);
-    val_port_t *p = val_unwrap_port(port);
-
-    char *buf = malloc(vect->len);
+    val_vect_t *vect;
+    val_port_t *p;
+    char *buf;
     int i, written;
+
+    type_check("write_bytes", T_VECT, &vec);
+    vect = val_unwrap_vect(vec);
+    p = val_unwrap_port(port);
+    check_open(p);
+
+    buf = malloc(vect->len);
 
     for (i = 0; i < vect->len; i++)
         buf[i] = (char) val_unwrap_int(vect->elems[i]);
@@ -204,6 +220,14 @@ val_t peek_byte_port(val_t port, val_t skip)
     return val_wrap_void(); // unreachable
 }
 
+val_t close_port(val_t p) {
+    val_port_t *port = val_unwrap_port(p);
+
+    close(port->fd);
+    port->closed = 1;
+
+    return val_wrap_void();
+}
 
 val_t create_socket(void) {
     int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -212,6 +236,7 @@ val_t create_socket(void) {
 
     return val_wrap_port(initialize_port(fd));
 }
+
 
 val_t socket_connect(val_t sock, val_t address, val_t port) {
     val_port_t *socket = val_unwrap_port(sock);

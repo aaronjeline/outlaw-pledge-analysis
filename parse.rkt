@@ -336,7 +336,7 @@
          error integer?
          eq-hash-code
          char-alphabetic? char-whitespace?
-         procedure?))
+         procedure? vector->string string->vector close))
 (define op2
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
       string-append set-box! quotient remainder
