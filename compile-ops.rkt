@@ -24,6 +24,8 @@
       (unpad-stack))]
 
     ;; Op1
+    ['exit
+     (op1 'sys_exit)]
     ['add1
      (seq (assert-integer rax)
           (Add rax (imm->bits 1)))]

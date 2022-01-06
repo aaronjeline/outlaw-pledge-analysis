@@ -34,6 +34,7 @@
          vector->string
          close
          accept
+         exit
          ;; Op2
          + - < = cons eq? make-vector vector-ref
          exec
@@ -132,6 +133,9 @@
     [16 (arithmetic-shift y 4)]
     [64 (arithmetic-shift y 6)]
     [_ (error "unimplemented multiplication")]))
+
+(define (exit n)
+  (%exit n))
 
 (define (undefined) (error "undefined"))
 
