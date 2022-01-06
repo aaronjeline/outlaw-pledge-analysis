@@ -174,7 +174,7 @@
     ['() (seq)]
     [(cons x fvs)
      (match (lookup x c)
-       [#f (error "unbound variable" x)]
+       [#f (error (format "unbound variable: ~a" x))]
        [i
         (seq (Mov r8 (Offset rsp i))
              (Mov (Offset rbx off) r8)
