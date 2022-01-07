@@ -17,6 +17,11 @@
           (Call 'system_type)
           (Sal rax int-shift)
           (unpad-stack))]
+    ['fork
+     (seq
+      (pad-stack)
+      (Call 'sys_fork)
+      (unpad-stack))]
 
     ;; Op1
     ['add1
