@@ -1,2 +1,2 @@
 #lang racket
-(let ((x (current-input-port))) 5)
+(let ((x (fork))) 5)
