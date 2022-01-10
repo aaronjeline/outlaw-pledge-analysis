@@ -96,7 +96,6 @@ val_t sys_execl(val_t name, val_t args) {
 
 }
 
-<<<<<<< HEAD
 // fork
 val_t sys_fork() {
     fork();
@@ -107,11 +106,11 @@ val_t sys_fork() {
 
 }
 
-=======
+
 // int -> !
 void sys_exit(val_t n) {
     type_check("sys_exit", T_INT, &n);
     int code = val_unwrap_int(n);
     exit(code);
 }
->>>>>>> 86b1baab202cb6dadd07e0965d088d2e3a254bc1
+
