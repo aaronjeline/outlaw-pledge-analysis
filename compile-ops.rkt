@@ -17,17 +17,14 @@
           (Call 'system_type)
           (Sal rax int-shift)
           (unpad-stack))]
-<<<<<<< HEAD
     ['fork
      (seq
       (pad-stack)
       (Call 'sys_fork)
-=======
     ['socket
      (seq
       (pad-stack)
       (Call 'create_socket)
->>>>>>> 86b1baab202cb6dadd07e0965d088d2e3a254bc1
       (unpad-stack))]
 
     ;; Op1
