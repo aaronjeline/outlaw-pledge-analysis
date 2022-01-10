@@ -321,7 +321,12 @@
 (define op0
   '(read-byte void read-char peek-char
               current-input-port ; hack, doesn't actually exist
+<<<<<<< HEAD
               system-type fork
+=======
+              system-type
+              socket
+>>>>>>> 86b1baab202cb6dadd07e0965d088d2e3a254bc1
               ))
 
 (define op1
@@ -336,7 +341,8 @@
          error integer?
          eq-hash-code
          char-alphabetic? char-whitespace?
-         procedure? vector->string string->vector close))
+         procedure? vector->string string->vector close
+         accept exit))
 (define op2
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
       string-append set-box! quotient remainder
@@ -345,9 +351,9 @@
       read_bytes
       write_bytes
       bitwise-and bitwise-ior bitwise-xor arithmetic-shift
-      peek-byte))
+      peek-byte bind-and-listen))
 (define op3
-  '(vector-set!))
+  '(vector-set! connect))
 
 (define (op? ops)
   (λ (x)

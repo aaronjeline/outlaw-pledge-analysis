@@ -17,13 +17,22 @@
           (Call 'system_type)
           (Sal rax int-shift)
           (unpad-stack))]
+<<<<<<< HEAD
     ['fork
      (seq
       (pad-stack)
       (Call 'sys_fork)
+=======
+    ['socket
+     (seq
+      (pad-stack)
+      (Call 'create_socket)
+>>>>>>> 86b1baab202cb6dadd07e0965d088d2e3a254bc1
       (unpad-stack))]
 
     ;; Op1
+    ['exit
+     (op1 'sys_exit)]
     ['add1
      (seq (assert-integer rax)
           (Add rax (imm->bits 1)))]
@@ -140,7 +149,9 @@
     ['string->vector
      (op1 'string_to_vector)]
     ['close
-     (op1 'close_port)]     
+     (op1 'close_port)]
+    ['accept
+     (op1 'socket_accept)]
       
     ['integer?
      (type-pred mask-int type-int)]
@@ -442,6 +453,10 @@
           (Add r8 r10)
           (Mov (Offset r8 8) rax)
           (Mov rax val-void))]
+    ['connect
+     (op3 'socket_connect)]
+      
+           
 
     ['peek-byte-port
      (seq (Pop r8) ; assert port
@@ -483,6 +498,8 @@
           (pad-stack)
           (Call 'open_input_file)
           (unpad-stack))]
+    ['bind-and-listen
+     (op2 'socket_bind_and_listen)]
 
     ['struct-ref ; symbol, int, struct
      (seq (Pop r8)
@@ -505,8 +522,10 @@
         (λ (c) (not (char=? c #\-)))
         (string->list (symbol->string l)))))
 
+(define (param/c c) (-> c any/c))
+
 (define/contract (op1 label)
-  (-> valid-label? any/c)
+  (param/c label?)
   (seq
    (Mov rdi rax)
    (pad-stack)
@@ -514,13 +533,25 @@
    (unpad-stack)))
 
 (define/contract (op2 label)
-  (-> valid-label? any/c)
+  (param/c label?)
   (seq (Pop r8)
        (Mov rdi r8)
        (Mov rsi rax)
        (pad-stack)
        (Call label)
        (unpad-stack)))
+
+(define/contract (op3 label)
+  (param/c label?)
+  (seq
+   (Pop r8)
+   (Pop r9)
+   (Mov rdi r9)
+   (Mov rsi r8)
+   (Mov rdx rax)
+   (pad-stack)
+   (Call label)
+   (unpad-stack)))
 
 
 ;; Nat -> Asm

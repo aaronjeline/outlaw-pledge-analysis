@@ -4,12 +4,7 @@
 
 (struct Text   ())
 (struct Data   ())
-(define (valid-label? l)
-  (and (symbol? l)
-       (andmap
-        (λ (c)
-          (not (char=? c #\-)))
-        (string->list (symbol->string l)))))
+
 
 (struct Global (x))
 (struct Label  (x))

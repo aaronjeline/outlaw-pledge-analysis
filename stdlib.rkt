@@ -20,7 +20,7 @@
          ; unimplemented
          exact->inexact / expt string->keyword
          ;; Op0
-         read-byte peek-byte void
+         read-byte peek-byte void socket
          ;; Op1
          add1 sub1 zero? char? write-byte eof-object?
          integer->char char->integer
@@ -33,6 +33,8 @@
          string->vector
          vector->string
          close
+         accept
+         exit
          ;; Op2
          + - < = cons eq? make-vector vector-ref
          exec
@@ -41,8 +43,10 @@
          bitwise-and bitwise-ior bitwise-xor arithmetic-shift
          read-bytes
          write-bytes
+         bind-and-listen
          ;; Op3
-         vector-set!)
+         vector-set!
+         connect)
 
 (require (prefix-in % racket)
          (rename-in racket
@@ -62,6 +66,12 @@
   (case-lambda
     [() (%read-byte)]
     [(p) (%read-byte-port p)]))  ;; not a racket function!
+
+(define (socket)
+  (%socket))
+
+(define (%socket)
+  (undefined))
 
 ;(define (peek-byte) (%peek-byte))
 (define peek-byte
@@ -124,6 +134,9 @@
     [64 (arithmetic-shift y 6)]
     [_ (error "unimplemented multiplication")]))
 
+(define (exit n)
+  (%exit n))
+
 (define (undefined) (error "undefined"))
 
 (define (vector->string v)
@@ -135,6 +148,9 @@
   (%string->vector s))
 
 (define (%string->vector s) (undefined))
+
+(define (accept p) (%accept p))
+(define (%accept p) (undefined))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op2
@@ -237,12 +253,22 @@
 
 (define (%write_bytes p v) (error ""))
 
+(define (bind-and-listen p v)
+  (%bind-and-listen p v))
+
+(define (%bind-and-listen p v) (undefined))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op3
 (define (vector-set! v i x)
   (%vector-set! v i x))
 
+(define (connect p a prt)
+  (%connect p a prt))
+
+(define (%connect p a prt)
+  (undefined))
+  
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

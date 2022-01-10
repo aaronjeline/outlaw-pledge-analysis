@@ -229,6 +229,7 @@ val_t close_port(val_t p) {
     return val_wrap_void();
 }
 
+// -> port
 val_t create_socket(void) {
     int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (fd < 0)
@@ -238,27 +239,83 @@ val_t create_socket(void) {
 }
 
 
+// port -> string -> int -> void
 val_t socket_connect(val_t sock, val_t address, val_t port) {
-    val_port_t *socket = val_unwrap_port(sock);
-    char *addr = decode(address);
-    type_check("socket_connect", T_INT, &port);
-    int p = val_unwrap_int(port);
+    val_port_t *socket;
+    char *addr;
+    int p, chk;
     struct sockaddr_in servAddr;
+
+
+    socket = val_unwrap_port(sock);
+    type_check("socket_connect", T_STR, &address);
+    addr = decode(address);
+    type_check("socket_connect", T_INT, &port);
+    p = val_unwrap_int(port);
+
     memset(&servAddr, 0, sizeof servAddr);
     servAddr.sin_family = AF_INET;
     
-    int chk = inet_pton(AF_INET, addr, &servAddr.sin_addr.s_addr);
+    chk = inet_pton(AF_INET, addr, &servAddr.sin_addr.s_addr);
+
     if (chk < 0)
         errno_die("inet_pton");
     else if (chk == 0)
         error_handler(create_string("Invalid Address"));
 
     servAddr.sin_port = htons(p);
-    chk = connect(socket->fd, (struct sockaddr*) &servAddr, sizeof servAddr);
+    chk = connect(socket->fd, 
+            (struct sockaddr*) &servAddr, 
+            sizeof servAddr);
+
     if (chk < 0)
         errno_die("connect()");
 
     return val_wrap_void();
 }
 
+// port -> int -> void
+val_t socket_bind_and_listen(val_t sock, val_t port) {
+    val_port_t *socket;
+    int p, check;
+    struct sockaddr_in local;
 
+    socket = val_unwrap_port(sock);
+    type_check("socket_bind", T_INT, &port);
+    p = val_unwrap_int(port);
+
+    memset(&local, 0, sizeof local);
+    local.sin_family = AF_INET;
+    local.sin_addr.s_addr = htonl(INADDR_ANY);
+    local.sin_port = htons(p);
+
+    check = bind(socket->fd, (struct sockaddr*)&local, sizeof local);
+
+    if (check < 0)
+        errno_die("bind()");
+
+    check = listen(socket->fd, 5);
+
+    if (check < 0) 
+        errno_die("listen()");
+    
+    return val_wrap_void();
+}
+
+// port -> port
+// TODO: Pass client address implementation back somehow
+//       probably a struct?
+val_t socket_accept(val_t port) {
+    val_port_t *socket;
+    int newSock;
+    struct sockaddr_in clnt;
+    socklen_t addrLen;
+
+    socket = val_unwrap_port(port);
+
+    newSock = accept(socket->fd, (struct sockaddr*)&clnt, &addrLen);
+    if (socket < 0)
+        errno_die("accept()");
+
+    return val_wrap_port(initialize_port(newSock));
+}

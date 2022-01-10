@@ -73,7 +73,7 @@
          * ; limited
          exact->inexact / expt string->keyword ; unimplemented
          ;; Op0
-         read-byte peek-byte void
+         read-byte peek-byte void socket exit
          ;; Op1
          add1 sub1 zero? char? write-byte eof-object?
          integer->char char->integer
@@ -85,6 +85,7 @@
          write-char error integer? procedure?
          eq-hash-code char-alphabetic? char-whitespace? displayln write-string
          vector->string string->vector close
+         accept
          ;; Op2
          exec
          + - < = cons eq? make-vector vector-ref
@@ -92,9 +93,11 @@
          quotient remainder set-box!
          read-bytes
          write-bytes
-         bitwise-and bitwise-ior bitwise-xor arithmetic-shift         
+         bitwise-and bitwise-ior bitwise-xor arithmetic-shift
+         bind-and-listen
          ;; Op3
-         vector-set!))
+         vector-set!
+         connect))
 
 (define (externs)
   (map Extern
@@ -118,7 +121,12 @@
          write_bytes
          vector_to_string
          string_to_vector
-         close_port)))
+         close_port
+         create_socket
+         socket_connect
+         socket_bind_and_listen
+         socket_accept
+         sys_exit)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))
