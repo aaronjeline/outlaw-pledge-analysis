@@ -321,7 +321,7 @@
 (define op0
   '(read-byte void read-char peek-char
               current-input-port ; hack, doesn't actually exist
-              system-type
+              system-type fork
               ))
 
 (define op1

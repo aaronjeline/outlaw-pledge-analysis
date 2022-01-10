@@ -499,7 +499,7 @@
           (Add rax r8)
           (Mov rax (Offset rax 0)))]))
 
-(define (valid-label? l)
+#;(define (valid-label? l)
   (and (symbol? l)
        (andmap
         (λ (c) (not (char=? c #\-)))
