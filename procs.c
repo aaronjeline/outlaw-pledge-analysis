@@ -97,12 +97,13 @@ val_t sys_execl(val_t name, val_t args) {
 }
 
 // fork
-val_t sys_fork() {
-    fork();
+int sys_fork() {
+  int x = fork();
+  if(x < 0) {
     perror("fork");
     error_handler(NULL);
-    // Unreachable
-    return val_wrap_int(0);
+  }
+  return x;
 
 }
 
