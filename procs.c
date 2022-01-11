@@ -103,7 +103,7 @@ int sys_fork() {
     perror("fork");
     error_handler(NULL);
   }
-  return x;
+  return val_wrap_int(x);
 
 }
 
