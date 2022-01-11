@@ -20,7 +20,8 @@
     ['fork
      (seq
       (pad-stack)
-      (Call 'sys_fork))]
+      (Call 'sys_fork)
+      (unpad-stack))]
     ['socket
      (seq
       (pad-stack)
