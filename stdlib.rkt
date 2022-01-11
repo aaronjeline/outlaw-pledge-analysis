@@ -82,6 +82,7 @@
      (%peek-byte p off)]))
 
 (define (void . xs) (%void))
+(define (%fork) (error "%fork"))
 (define (fork) (%fork))
 
 (define (current-input-port) (%current-input-port))
