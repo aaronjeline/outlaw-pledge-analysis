@@ -52,7 +52,7 @@ runtime.o: $(objs)
 	ld -r $(objs) -o runtime.o
 
 %.run: %.o runtime.o
-	gcc -lunistring runtime.o $< -o $@
+	gcc runtime.o $< -lunistring -o $@
 
 .c.o:
 	gcc -fPIC -c -g -o $@ $<

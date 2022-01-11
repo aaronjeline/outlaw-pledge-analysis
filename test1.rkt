@@ -1,2 +1,2 @@
 #lang racket
-(let ((x (fork))) 5)
+(let ((x (fork))) (let ((y (fork))) "fork!"))

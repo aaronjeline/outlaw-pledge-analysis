@@ -12,8 +12,7 @@ const char* type_strs[13] =
 
 void type_check(const char *loc, type_t want, val_t *value) {
     type_t got = val_typeof(*value);
-    if (got != want)
-        type_error(loc, want, got);
+    if (got != want) type_error(loc, want, got);
 }
 
 

@@ -27,7 +27,6 @@ typedef enum type_t {
 } type_t;
 
 
-const char* type_strs[13];
 
 typedef uint32_t val_char_t;
 typedef struct val_box_t {
