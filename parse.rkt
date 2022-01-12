@@ -323,7 +323,7 @@
               current-input-port ; hack, doesn't actually exist
               fork wait
               system-type
-              socket ))
+              socket flush ))
 
 (define op1
   '(add1 sub1 zero? char? write-byte eof-object?
@@ -335,10 +335,10 @@
          read-byte-port
          write-char
          error integer?
-         eq-hash-code
+         eq-hash-code 
          char-alphabetic? char-whitespace?
          procedure? vector->string string->vector close
-         accept exit))
+         accept exit chdir))
 (define op2
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
       string-append set-box! quotient remainder

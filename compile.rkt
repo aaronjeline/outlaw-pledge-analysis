@@ -73,7 +73,7 @@
          * ; limited
          exact->inexact / expt string->keyword ; unimplemented
          ;; Op0
-         read-byte peek-byte void socket exit fork wait
+         read-byte peek-byte void socket exit fork wait flush
          ;; Op1
          add1 sub1 zero? char? write-byte eof-object?
          integer->char char->integer
@@ -83,11 +83,13 @@
          string->uninterned-symbol
          open-input-file
          write-char error integer? procedure?
-         eq-hash-code char-alphabetic? char-whitespace? displayln write-string
+         eq-hash-code char-alphabetic? char-whitespace? display
+         displayln write-string
          vector->string string->vector close
-         accept
+         accept chdir
          ;; Op2
-         exec
+         exec string-split
+         string=?
          + - < = cons eq? make-vector vector-ref
          make-string string-ref string-append
          quotient remainder set-box!
@@ -128,7 +130,9 @@
          socket_accept
          sys_exit
          sys_fork
-         wait_pid)))
+         wait_pid
+         flush_stdout
+         change_dir)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))

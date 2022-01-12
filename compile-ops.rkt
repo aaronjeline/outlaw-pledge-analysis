@@ -29,8 +29,12 @@
       (unpad-stack))]
     ['wait
      (op0 'wait_pid)]
+    ['flush
+     (op0 'flush_stdout)]
 
     ;; Op1
+    ['chdir
+     (op1 'change_dir)]
     ['exit
      (op1 'sys_exit)]
     ['add1

@@ -15,6 +15,7 @@
          read-line
          * ; limited
          char-alphabetic? char-whitespace?
+         display ; only words for string
          displayln ; only works for strings
          write-string
          ; unimplemented
@@ -35,6 +36,7 @@
          close
          accept
          exit
+         chdir
          ;; Op2
          + - < = cons eq? make-vector vector-ref
          exec
@@ -44,6 +46,8 @@
          read-bytes
          write-bytes
          bind-and-listen
+         string-split
+         string=?
          ;; Op3
          vector-set!
          connect)
@@ -160,6 +164,25 @@
 (define (accept p) (%accept p))
 (define (%accept p) (undefined))
 
+(define (string-rstrip s)
+  (list->string (string-rstrip/list (string->list s))))
+
+(define (string-rstrip/list chars)
+  (match chars
+    ['() '()]
+    [(? all-whitespace?) '()]
+    [(cons char chars) (cons char (string-rstrip/list chars))]))
+
+(define (all-whitespace? chars)
+  (andmap char-whitespace? chars))
+
+(define (chdir dir)
+  (%chdir dir))
+
+(define (%chdir dir)
+  (undefined))
+               
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op2
 (define (+ . xs)
@@ -265,6 +288,44 @@
   (%bind-and-listen p v))
 
 (define (%bind-and-listen p v) (undefined))
+
+(define (string-split s delim)
+  (reverse (string-split/acc (string->list s) delim '() '())))
+
+
+(define (string-split/acc chars delim words current-word)
+  (match chars
+    ['() (add-word current-word words)]
+    [(cons char chars)
+     (if (char=? char delim)
+         (string-split/acc chars delim (add-word current-word words)
+                           '())
+         (string-split/acc chars delim words (cons char current-word)))]))
+
+
+(define (add-word current-word words)
+  (cons (list->string (reverse current-word)) words))
+
+(define (zip l1 l2)
+  (match l1
+    ['() '()]
+    [(cons a as)
+     (match l2
+       ['() '()]
+       [(cons b bs)
+        (cons (cons a b) (zip as bs))])]))
+
+(define (apply/pair f)
+  (λ (pair) (f (car pair) (cdr pair))))
+
+(define (string=? s1 s2)
+  (if (= (string-length s1) (string-length s2))
+      (andmap (apply/pair char=?)
+              (zip (string->list s1)
+                   (string->list s2)))
+      #f))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op3
@@ -482,6 +543,8 @@
          (cons x (filter p xs))
          (filter p xs))]))
 
+
+
 (define map
   (case-lambda
     [(f xs) (map1 f xs)]
@@ -600,46 +663,46 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (read-char)
-   (let ((b (read-byte)))
-     (if (eof-object? b)
-         b
-         (integer->char
-          (if (< b 128)
-              b
-              (if (>= b 240)
-                  (+ (arithmetic-shift (bitwise-and b #b111) 18)
-                     (arithmetic-shift (bitwise-and (read-byte) #b111111) 12)
-                     (arithmetic-shift (bitwise-and (read-byte) #b111111) 6)
-                     (bitwise-and (read-byte) #b111111))
-                  (if (>= b 224)
-                      (+ (arithmetic-shift (bitwise-and b #b1111) 12)
-                         (arithmetic-shift (bitwise-and (read-byte) #b111111) 6)
-                         (bitwise-and (read-byte) #b111111))
-                      (if (>= b 192)
-                          (+ (arithmetic-shift (bitwise-and b #b11111) 6)
-                             (bitwise-and (read-byte) #b111111))
-                          (error "bad bytes")))))))))
+  (let ((b (read-byte)))
+    (if (eof-object? b)
+        b
+        (integer->char
+         (if (< b 128)
+             b
+             (if (>= b 240)
+                 (+ (arithmetic-shift (bitwise-and b #b111) 18)
+                    (arithmetic-shift (bitwise-and (read-byte) #b111111) 12)
+                    (arithmetic-shift (bitwise-and (read-byte) #b111111) 6)
+                    (bitwise-and (read-byte) #b111111))
+                 (if (>= b 224)
+                     (+ (arithmetic-shift (bitwise-and b #b1111) 12)
+                        (arithmetic-shift (bitwise-and (read-byte) #b111111) 6)
+                        (bitwise-and (read-byte) #b111111))
+                     (if (>= b 192)
+                         (+ (arithmetic-shift (bitwise-and b #b11111) 6)
+                            (bitwise-and (read-byte) #b111111))
+                         (error "bad bytes")))))))))
 
 (define (peek-char)
-   (let ((b (peek-byte)))
-     (if (eof-object? b)
-         b
-         (integer->char
-          (if (< b 128)
-              b
-              (if (>= b 240)
-                  (+ (arithmetic-shift (bitwise-and b #b111) 18)
-                     (arithmetic-shift (bitwise-and (peek-byte (%current-input-port) 1) #b111111) 12)
-                     (arithmetic-shift (bitwise-and (peek-byte (%current-input-port) 2) #b111111) 6)
-                     (bitwise-and (peek-byte (%current-input-port) 3) #b111111))
-                  (if (>= b 224)
-                      (+ (arithmetic-shift (bitwise-and b #b1111) 12)
-                         (arithmetic-shift (bitwise-and (peek-byte (%current-input-port) 1) #b111111) 6)
-                         (bitwise-and (peek-byte (%current-input-port) 2) #b111111))
-                      (if (>= b 192)
-                          (+ (arithmetic-shift (bitwise-and b #b11111) 6)
-                             (bitwise-and (peek-byte (%current-input-port) 1) #b111111))
-                          (error "bad bytes")))))))))
+  (let ((b (peek-byte)))
+    (if (eof-object? b)
+        b
+        (integer->char
+         (if (< b 128)
+             b
+             (if (>= b 240)
+                 (+ (arithmetic-shift (bitwise-and b #b111) 18)
+                    (arithmetic-shift (bitwise-and (peek-byte (%current-input-port) 1) #b111111) 12)
+                    (arithmetic-shift (bitwise-and (peek-byte (%current-input-port) 2) #b111111) 6)
+                    (bitwise-and (peek-byte (%current-input-port) 3) #b111111))
+                 (if (>= b 224)
+                     (+ (arithmetic-shift (bitwise-and b #b1111) 12)
+                        (arithmetic-shift (bitwise-and (peek-byte (%current-input-port) 1) #b111111) 6)
+                        (bitwise-and (peek-byte (%current-input-port) 2) #b111111))
+                     (if (>= b 192)
+                         (+ (arithmetic-shift (bitwise-and b #b11111) 6)
+                            (bitwise-and (peek-byte (%current-input-port) 1) #b111111))
+                         (error "bad bytes")))))))))
 
 (define (read-line)
   (read-line/a '()))
@@ -652,6 +715,19 @@
 
 (define (char-alphabetic? x) (%char-alphabetic? x))
 (define (char-whitespace? x) (%char-whitespace? x))
+
+(define (display s)
+  (if (string? s)
+      (begin
+        (write-string s)
+        (flush))
+      (error "unimplemented display for non-strings")))
+
+(define (flush)
+  (%flush))
+
+(define (%flush) (undefined))
+       
 
 (define (displayln s)
   (if (string? s)
@@ -705,8 +781,8 @@
                           (let ((r (<block-comment>)))
                             (if (err? r) r (<start>))))]
                   [#\; (read-char)
-                   (let ((r (<elem>)))
-                     (if (err? r) r (<start>)))]
+                       (let ((r (<elem>)))
+                         (if (err? r) r (<start>)))]
                   [_ (<octo>)]))]
     [_   (<elem>)]))
 
@@ -853,7 +929,7 @@
      (<unsigned-or-symbol> signed? (cons d whole))]
     [_ (<symbol> (cons (read-char)
                        (append whole (if signed? (list signed?) '())))
-                )]))
+                 )]))
 
 (define (<frac> signed? whole frac)
   (match (peek-char)
@@ -865,7 +941,7 @@
                                (list #\.)
                                whole
                                (if signed? (list signed?) '())))
-                )]))
+                 )]))
 
 (define (make-frac signed? whole frac)
   (match (cons whole frac)
@@ -1072,8 +1148,8 @@
          [#\t (<char-start>-special-seq #\t #\a '(#\b) #\tab)]
          [#\v (<char-start>-special-seq #\v #\t '(#\a #\b) #\vtab)]
          [#\r (<char-start>-special-seq-alt #\r
-                                                 #\e '(#\t #\u #\r #\n) #\return
-                                                 #\u '(#\b #\o #\u #\t) #\rubout)]
+                                            #\e '(#\t #\u #\r #\n) #\return
+                                            #\u '(#\b #\o #\u #\t) #\rubout)]
          ;; Move this into <char-start>-nu and rename to -n.
          [#\n (let ((next (peek-char)))
                 (cond [(char=? next #\e)

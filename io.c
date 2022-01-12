@@ -22,6 +22,11 @@ void errno_die(char *place) {
     error_handler(NULL);
 }
 
+val_t flush_stdout(void) {
+    fflush(stdout);
+    return val_wrap_void();
+}
+
 val_t read_byte(void)
 {
   char c = getc(in);
@@ -318,4 +323,22 @@ val_t socket_accept(val_t port) {
         errno_die("accept()");
 
     return val_wrap_port(initialize_port(newSock));
+}
+
+val_t change_dir(val_t dest) {
+    char *s = decode(dest);
+    int resp = chdir(s);
+    val_symb_t* sym;
+
+    sym = calloc(6+2, sizeof(val_char_t));
+    sym->len = 2;
+    memcpy(sym->codepoints, (val_char_t[]){'o', 'k'}, 2 * 4);
+
+    if (resp == 0) 
+        return val_wrap_symb(sym);
+    else {
+        perror("chdir");
+        return val_wrap_bool(0);
+    }
+
 }

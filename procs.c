@@ -90,7 +90,7 @@ val_t sys_execl(val_t name, val_t args) {
 
     al = decode_list(args);
 
-    execv(n, al->list);
+    execvp(n, al->list);
     perror("exec");
     error_handler(NULL);
     // Unreachable
@@ -109,10 +109,25 @@ val_t sys_fork() {
 
 }
 
+void errno_die(char*);
+
 val_t wait_pid(void) {
     int wstatus;
-    wait(&wstatus);
-    return val_wrap_int(WEXITSTATUS(wstatus));
+    pid_t r = wait(&wstatus);
+    if (r == 0 || r == -1)
+        errno_die("wait_pid");
+    char *msg;
+    if (WIFEXITED(wstatus))
+        return val_wrap_int(WEXITSTATUS(wstatus));
+    else if (WIFSIGNALED(wstatus))
+        msg = "Exited due to signal";
+    else if (WIFSTOPPED(wstatus))
+        msg = "Child Stopped";
+    else if (WIFCONTINUED(wstatus))
+        msg = "Child continued";
+
+    error_handler(create_string(msg)); 
+    return 0;
 }
 
 // int -> !
