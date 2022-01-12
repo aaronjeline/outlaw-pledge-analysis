@@ -73,7 +73,7 @@
          * ; limited
          exact->inexact / expt string->keyword ; unimplemented
          ;; Op0
-         read-byte peek-byte void socket exit fork
+         read-byte peek-byte void socket exit fork wait
          ;; Op1
          add1 sub1 zero? char? write-byte eof-object?
          integer->char char->integer
@@ -127,7 +127,8 @@
          socket_bind_and_listen
          socket_accept
          sys_exit
-         sys_fork)))
+         sys_fork
+         wait_pid)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))

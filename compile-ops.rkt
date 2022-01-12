@@ -27,6 +27,8 @@
       (pad-stack)
       (Call 'create_socket)
       (unpad-stack))]
+    ['wait
+     (op0 'wait_pid)]
 
     ;; Op1
     ['exit
@@ -521,6 +523,13 @@
         (string->list (symbol->string l)))))
 
 (define (param/c c) (-> c any/c))
+
+(define/contract (op0 label)
+  (param/c label?)
+  (seq
+   (pad-stack)
+   (Call label)
+   (unpad-stack)))
 
 (define/contract (op1 label)
   (param/c label?)

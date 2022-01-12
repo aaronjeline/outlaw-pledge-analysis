@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include "types.h"
 #include "values.h"
@@ -97,7 +99,7 @@ val_t sys_execl(val_t name, val_t args) {
 }
 
 // fork
-int sys_fork() {
+val_t sys_fork() {
   int x = fork();
   if(x < 0) {
     perror("fork");
@@ -107,6 +109,11 @@ int sys_fork() {
 
 }
 
+val_t wait_pid(void) {
+    int wstatus;
+    wait(&wstatus);
+    return val_wrap_int(WEXITSTATUS(wstatus));
+}
 
 // int -> !
 void sys_exit(val_t n) {

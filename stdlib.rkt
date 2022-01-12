@@ -20,7 +20,7 @@
          ; unimplemented
          exact->inexact / expt string->keyword
          ;; Op0
-         read-byte peek-byte void socket fork current-input-port
+         read-byte peek-byte void socket fork wait current-input-port
          ;; Op1
          add1 sub1 zero? char? write-byte eof-object?
          integer->char char->integer
@@ -71,6 +71,12 @@
   (%socket))
 
 (define (%socket)
+  (undefined))
+
+(define (wait)
+  (%wait))
+
+(define (%wait)
   (undefined))
 
 ;(define (peek-byte) (%peek-byte))
