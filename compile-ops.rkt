@@ -33,6 +33,8 @@
      (op0 'flush_stdout)]
 
     ;; Op1
+    ['forbid
+     (op1 'forbid)]
     ['chdir
      (op1 'change_dir)]
     ['exit

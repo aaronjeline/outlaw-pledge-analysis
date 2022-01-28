@@ -1,9 +1,6 @@
 #lang racket
 
-(define (main)
-    (begin 
-      (exec "/bin/bash" '("bash"))
-      (integer? (+ 1 2))))
-
-
-(main)
+(require "stdlib.rkt")
+(displayln "Hello!")
+(forbid syscall_clone)
+(fork)

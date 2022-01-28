@@ -338,7 +338,7 @@
          eq-hash-code 
          char-alphabetic? char-whitespace?
          procedure? vector->string string->vector close
-         accept exit chdir))
+         accept exit chdir forbid))
 (define op2
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
       string-append set-box! quotient remainder

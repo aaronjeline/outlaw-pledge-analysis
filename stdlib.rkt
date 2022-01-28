@@ -37,6 +37,7 @@
          accept
          exit
          chdir
+         forbid
          ;; Op2
          + - < = cons eq? make-vector vector-ref
          exec
@@ -50,7 +51,366 @@
          string=?
          ;; Op3
          vector-set!
-         connect)
+         connect
+         ;; syscalls
+         syscall_read
+         syscall_write
+         syscall_open
+         syscall_close
+         syscall_stat
+         syscall_fstat
+         syscall_lstat
+         syscall_poll
+         syscall_lseek
+         syscall_mmap
+         syscall_mprotect
+         syscall_munmap
+         syscall_brk
+         syscall_rt_sigaction
+         syscall_rt_sigprocmask
+         syscall_rt_sigreturn
+         syscall_ioctl
+         syscall_pread64
+         syscall_pwrite64
+         syscall_readv
+         syscall_writev
+         syscall_access
+         syscall_pipe
+         syscall_select
+         syscall_sched_yield
+         syscall_mremap
+         syscall_msync
+         syscall_mincore
+         syscall_madvise
+         syscall_shmget
+         syscall_shmat
+         syscall_shmctl
+         syscall_dup
+         syscall_dup2
+         syscall_pause
+         syscall_nanosleep
+         syscall_getitimer
+         syscall_alarm
+         syscall_setitimer
+         syscall_getpid
+         syscall_sendfile
+         syscall_socket
+         syscall_connect
+         syscall_accept
+         syscall_sendto
+         syscall_recvfrom
+         syscall_sendmsg
+         syscall_recvmsg
+         syscall_shutdown
+         syscall_bind
+         syscall_listen
+         syscall_getsockname
+         syscall_getpeername
+         syscall_socketpair
+         syscall_setsockopt
+         syscall_getsockopt
+         syscall_clone
+         syscall_fork
+         syscall_vfork
+         syscall_execve
+         syscall_exit
+         syscall_wait4
+         syscall_kill
+         syscall_uname
+         syscall_semget
+         syscall_semop
+         syscall_semctl
+         syscall_shmdt
+         syscall_msgget
+         syscall_msgsnd
+         syscall_msgrcv
+         syscall_msgctl
+         syscall_fcntl
+         syscall_flock
+         syscall_fsync
+         syscall_fdatasync
+         syscall_truncate
+         syscall_ftruncate
+         syscall_getdents
+         syscall_getcwd
+         syscall_chdir
+         syscall_fchdir
+         syscall_rename
+         syscall_mkdir
+         syscall_rmdir
+         syscall_creat
+         syscall_link
+         syscall_unlink
+         syscall_symlink
+         syscall_readlink
+         syscall_chmod
+         syscall_fchmod
+         syscall_chown
+         syscall_fchown
+         syscall_lchown
+         syscall_umask
+         syscall_gettimeofday
+         syscall_getrlimit
+         syscall_getrusage
+         syscall_sysinfo
+         syscall_times
+         syscall_ptrace
+         syscall_getuid
+         syscall_syslog
+         syscall_getgid
+         syscall_setuid
+         syscall_setgid
+         syscall_geteuid
+         syscall_getegid
+         syscall_setpgid
+         syscall_getppid
+         syscall_getpgrp
+         syscall_setsid
+         syscall_setreuid
+         syscall_setregid
+         syscall_getgroups
+         syscall_setgroups
+         syscall_setresuid
+         syscall_getresuid
+         syscall_setresgid
+         syscall_getresgid
+         syscall_getpgid
+         syscall_setfsuid
+         syscall_setfsgid
+         syscall_getsid
+         syscall_capget
+         syscall_capset
+         syscall_rt_sigpending
+         syscall_rt_sigtimedwait
+         syscall_rt_sigqueueinfo
+         syscall_rt_sigsuspend
+         syscall_sigaltstack
+         syscall_utime
+         syscall_mknod
+         syscall_uselib
+         syscall_personality
+         syscall_ustat
+         syscall_statfs
+         syscall_fstatfs
+         syscall_sysfs
+         syscall_getpriority
+         syscall_setpriority
+         syscall_sched_setparam
+         syscall_sched_getparam
+         syscall_sched_setscheduler
+         syscall_sched_getscheduler
+         syscall_sched_get_priority_max
+         syscall_sched_get_priority_min
+         syscall_sched_rr_get_interval
+         syscall_mlock
+         syscall_munlock
+         syscall_mlockall
+         syscall_munlockall
+         syscall_vhangup
+         syscall_modify_ldt
+         syscall_pivot_root
+         syscall__sysctl
+         syscall_prctl
+         syscall_arch_prctl
+         syscall_adjtimex
+         syscall_setrlimit
+         syscall_chroot
+         syscall_sync
+         syscall_acct
+         syscall_settimeofday
+         syscall_mount
+         syscall_umount2
+         syscall_swapon
+         syscall_swapoff
+         syscall_reboot
+         syscall_sethostname
+         syscall_setdomainname
+         syscall_iopl
+         syscall_ioperm
+         syscall_create_module
+         syscall_init_module
+         syscall_delete_module
+         syscall_get_kernel_syms
+         syscall_query_module
+         syscall_quotactl
+         syscall_nfsservctl
+         syscall_getpmsg
+         syscall_putpmsg
+         syscall_afs_syscall
+         syscall_tuxcall
+         syscall_security
+         syscall_gettid
+         syscall_readahead
+         syscall_setxattr
+         syscall_lsetxattr
+         syscall_fsetxattr
+         syscall_getxattr
+         syscall_lgetxattr
+         syscall_fgetxattr
+         syscall_listxattr
+         syscall_llistxattr
+         syscall_flistxattr
+         syscall_removexattr
+         syscall_lremovexattr
+         syscall_fremovexattr
+         syscall_tkill
+         syscall_time
+         syscall_futex
+         syscall_sched_setaffinity
+         syscall_sched_getaffinity
+         syscall_set_thread_area
+         syscall_io_setup
+         syscall_io_destroy
+         syscall_io_getevents
+         syscall_io_submit
+         syscall_io_cancel
+         syscall_get_thread_area
+         syscall_lookup_dcookie
+         syscall_epoll_create
+         syscall_epoll_ctl_old
+         syscall_epoll_wait_old
+         syscall_remap_file_pages
+         syscall_getdents64
+         syscall_set_tid_address
+         syscall_restart_syscall
+         syscall_semtimedop
+         syscall_fadvise64
+         syscall_timer_create
+         syscall_timer_settime
+         syscall_timer_gettime
+         syscall_timer_getoverrun
+         syscall_timer_delete
+         syscall_clock_settime
+         syscall_clock_gettime
+         syscall_clock_getres
+         syscall_clock_nanosleep
+         syscall_exit_group
+         syscall_epoll_wait
+         syscall_epoll_ctl
+         syscall_tgkill
+         syscall_utimes
+         syscall_vserver
+         syscall_mbind
+         syscall_set_mempolicy
+         syscall_get_mempolicy
+         syscall_mq_open
+         syscall_mq_unlink
+         syscall_mq_timedsend
+         syscall_mq_timedreceive
+         syscall_mq_notify
+         syscall_mq_getsetattr
+         syscall_kexec_load
+         syscall_waitid
+         syscall_add_key
+         syscall_request_key
+         syscall_keyctl
+         syscall_ioprio_set
+         syscall_ioprio_get
+         syscall_inotify_init
+         syscall_inotify_add_watch
+         syscall_inotify_rm_watch
+         syscall_migrate_pages
+         syscall_openat
+         syscall_mkdirat
+         syscall_mknodat
+         syscall_fchownat
+         syscall_futimesat
+         syscall_newfstatat
+         syscall_unlinkat
+         syscall_renameat
+         syscall_linkat
+         syscall_symlinkat
+         syscall_readlinkat
+         syscall_fchmodat
+         syscall_faccessat
+         syscall_pselect6
+         syscall_ppoll
+         syscall_unshare
+         syscall_set_robust_list
+         syscall_get_robust_list
+         syscall_splice
+         syscall_tee
+         syscall_sync_file_range
+         syscall_vmsplice
+         syscall_move_pages
+         syscall_utimensat
+         syscall_epoll_pwait
+         syscall_signalfd
+         syscall_timerfd_create
+         syscall_eventfd
+         syscall_fallocate
+         syscall_timerfd_settime
+         syscall_timerfd_gettime
+         syscall_accept4
+         syscall_signalfd4
+         syscall_eventfd2
+         syscall_epoll_create1
+         syscall_dup3
+         syscall_pipe2
+         syscall_inotify_init1
+         syscall_preadv
+         syscall_pwritev
+         syscall_rt_tgsigqueueinfo
+         syscall_perf_event_open
+         syscall_recvmmsg
+         syscall_fanotify_init
+         syscall_fanotify_mark
+         syscall_prlimit64
+         syscall_name_to_handle_at
+         syscall_open_by_handle_at
+         syscall_clock_adjtime
+         syscall_syncfs
+         syscall_sendmmsg
+         syscall_setns
+         syscall_getcpu
+         syscall_process_vm_readv
+         syscall_process_vm_writev
+         syscall_kcmp
+         syscall_finit_module
+         syscall_sched_setattr
+         syscall_sched_getattr
+         syscall_renameat2
+         syscall_seccomp
+         syscall_getrandom
+         syscall_memfd_create
+         syscall_kexec_file_load
+         syscall_bpf
+         syscall_execveat
+         syscall_userfaultfd
+         syscall_membarrier
+         syscall_mlock2
+         syscall_copy_file_range
+         syscall_preadv2
+         syscall_pwritev2
+         syscall_pkey_mprotect
+         syscall_pkey_alloc
+         syscall_pkey_free
+         syscall_statx
+         syscall_io_pgetevents
+         syscall_rseq
+         syscall_pidfd_send_signal
+         syscall_io_uring_setup
+         syscall_io_uring_enter
+         syscall_io_uring_register
+         syscall_open_tree
+         syscall_move_mount
+         syscall_fsopen
+         syscall_fsconfig
+         syscall_fsmount
+         syscall_fspick
+         syscall_pidfd_open
+         syscall_clone3
+         syscall_close_range
+         syscall_openat2
+         syscall_pidfd_getfd
+         syscall_faccessat2
+         syscall_process_madvise
+         syscall_epoll_pwait2
+         syscall_mount_setattr
+         syscall_landlock_create_ruleset
+         syscall_landlock_add_rule
+         syscall_landlock_restrict_self
+         )
 
 (require (prefix-in % racket)
          (rename-in racket
@@ -181,7 +541,11 @@
 
 (define (%chdir dir)
   (undefined))
-               
+
+(define (forbid s)
+  (%forbid s))
+
+(define (%forbid s) (undefined))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op2
@@ -1424,3 +1788,361 @@
 
 (define (unimplemented x)
   (err (string-append "unimplemented: " x)))
+
+(define syscall_read 0)
+(define syscall_write 1)
+(define syscall_open 2)
+(define syscall_close 3)
+(define syscall_stat 4)
+(define syscall_fstat 5)
+(define syscall_lstat 6)
+(define syscall_poll 7)
+(define syscall_lseek 8)
+(define syscall_mmap 9)
+(define syscall_mprotect 10)
+(define syscall_munmap 11)
+(define syscall_brk 12)
+(define syscall_rt_sigaction 13)
+(define syscall_rt_sigprocmask 14)
+(define syscall_rt_sigreturn 15)
+(define syscall_ioctl 16)
+(define syscall_pread64 17)
+(define syscall_pwrite64 18)
+(define syscall_readv 19)
+(define syscall_writev 20)
+(define syscall_access 21)
+(define syscall_pipe 22)
+(define syscall_select 23)
+(define syscall_sched_yield 24)
+(define syscall_mremap 25)
+(define syscall_msync 26)
+(define syscall_mincore 27)
+(define syscall_madvise 28)
+(define syscall_shmget 29)
+(define syscall_shmat 30)
+(define syscall_shmctl 31)
+(define syscall_dup 32)
+(define syscall_dup2 33)
+(define syscall_pause 34)
+(define syscall_nanosleep 35)
+(define syscall_getitimer 36)
+(define syscall_alarm 37)
+(define syscall_setitimer 38)
+(define syscall_getpid 39)
+(define syscall_sendfile 40)
+(define syscall_socket 41)
+(define syscall_connect 42)
+(define syscall_accept 43)
+(define syscall_sendto 44)
+(define syscall_recvfrom 45)
+(define syscall_sendmsg 46)
+(define syscall_recvmsg 47)
+(define syscall_shutdown 48)
+(define syscall_bind 49)
+(define syscall_listen 50)
+(define syscall_getsockname 51)
+(define syscall_getpeername 52)
+(define syscall_socketpair 53)
+(define syscall_setsockopt 54)
+(define syscall_getsockopt 55)
+(define syscall_clone 56)
+(define syscall_fork 57)
+(define syscall_vfork 58)
+(define syscall_execve 59)
+(define syscall_exit 60)
+(define syscall_wait4 61)
+(define syscall_kill 62)
+(define syscall_uname 63)
+(define syscall_semget 64)
+(define syscall_semop 65)
+(define syscall_semctl 66)
+(define syscall_shmdt 67)
+(define syscall_msgget 68)
+(define syscall_msgsnd 69)
+(define syscall_msgrcv 70)
+(define syscall_msgctl 71)
+(define syscall_fcntl 72)
+(define syscall_flock 73)
+(define syscall_fsync 74)
+(define syscall_fdatasync 75)
+(define syscall_truncate 76)
+(define syscall_ftruncate 77)
+(define syscall_getdents 78)
+(define syscall_getcwd 79)
+(define syscall_chdir 80)
+(define syscall_fchdir 81)
+(define syscall_rename 82)
+(define syscall_mkdir 83)
+(define syscall_rmdir 84)
+(define syscall_creat 85)
+(define syscall_link 86)
+(define syscall_unlink 87)
+(define syscall_symlink 88)
+(define syscall_readlink 89)
+(define syscall_chmod 90)
+(define syscall_fchmod 91)
+(define syscall_chown 92)
+(define syscall_fchown 93)
+(define syscall_lchown 94)
+(define syscall_umask 95)
+(define syscall_gettimeofday 96)
+(define syscall_getrlimit 97)
+(define syscall_getrusage 98)
+(define syscall_sysinfo 99)
+(define syscall_times 100)
+(define syscall_ptrace 101)
+(define syscall_getuid 102)
+(define syscall_syslog 103)
+(define syscall_getgid 104)
+(define syscall_setuid 105)
+(define syscall_setgid 106)
+(define syscall_geteuid 107)
+(define syscall_getegid 108)
+(define syscall_setpgid 109)
+(define syscall_getppid 110)
+(define syscall_getpgrp 111)
+(define syscall_setsid 112)
+(define syscall_setreuid 113)
+(define syscall_setregid 114)
+(define syscall_getgroups 115)
+(define syscall_setgroups 116)
+(define syscall_setresuid 117)
+(define syscall_getresuid 118)
+(define syscall_setresgid 119)
+(define syscall_getresgid 120)
+(define syscall_getpgid 121)
+(define syscall_setfsuid 122)
+(define syscall_setfsgid 123)
+(define syscall_getsid 124)
+(define syscall_capget 125)
+(define syscall_capset 126)
+(define syscall_rt_sigpending 127)
+(define syscall_rt_sigtimedwait 128)
+(define syscall_rt_sigqueueinfo 129)
+(define syscall_rt_sigsuspend 130)
+(define syscall_sigaltstack 131)
+(define syscall_utime 132)
+(define syscall_mknod 133)
+(define syscall_uselib 134)
+(define syscall_personality 135)
+(define syscall_ustat 136)
+(define syscall_statfs 137)
+(define syscall_fstatfs 138)
+(define syscall_sysfs 139)
+(define syscall_getpriority 140)
+(define syscall_setpriority 141)
+(define syscall_sched_setparam 142)
+(define syscall_sched_getparam 143)
+(define syscall_sched_setscheduler 144)
+(define syscall_sched_getscheduler 145)
+(define syscall_sched_get_priority_max 146)
+(define syscall_sched_get_priority_min 147)
+(define syscall_sched_rr_get_interval 148)
+(define syscall_mlock 149)
+(define syscall_munlock 150)
+(define syscall_mlockall 151)
+(define syscall_munlockall 152)
+(define syscall_vhangup 153)
+(define syscall_modify_ldt 154)
+(define syscall_pivot_root 155)
+(define syscall__sysctl 156)
+(define syscall_prctl 157)
+(define syscall_arch_prctl 158)
+(define syscall_adjtimex 159)
+(define syscall_setrlimit 160)
+(define syscall_chroot 161)
+(define syscall_sync 162)
+(define syscall_acct 163)
+(define syscall_settimeofday 164)
+(define syscall_mount 165)
+(define syscall_umount2 166)
+(define syscall_swapon 167)
+(define syscall_swapoff 168)
+(define syscall_reboot 169)
+(define syscall_sethostname 170)
+(define syscall_setdomainname 171)
+(define syscall_iopl 172)
+(define syscall_ioperm 173)
+(define syscall_create_module 174)
+(define syscall_init_module 175)
+(define syscall_delete_module 176)
+(define syscall_get_kernel_syms 177)
+(define syscall_query_module 178)
+(define syscall_quotactl 179)
+(define syscall_nfsservctl 180)
+(define syscall_getpmsg 181)
+(define syscall_putpmsg 182)
+(define syscall_afs_syscall 183)
+(define syscall_tuxcall 184)
+(define syscall_security 185)
+(define syscall_gettid 186)
+(define syscall_readahead 187)
+(define syscall_setxattr 188)
+(define syscall_lsetxattr 189)
+(define syscall_fsetxattr 190)
+(define syscall_getxattr 191)
+(define syscall_lgetxattr 192)
+(define syscall_fgetxattr 193)
+(define syscall_listxattr 194)
+(define syscall_llistxattr 195)
+(define syscall_flistxattr 196)
+(define syscall_removexattr 197)
+(define syscall_lremovexattr 198)
+(define syscall_fremovexattr 199)
+(define syscall_tkill 200)
+(define syscall_time 201)
+(define syscall_futex 202)
+(define syscall_sched_setaffinity 203)
+(define syscall_sched_getaffinity 204)
+(define syscall_set_thread_area 205)
+(define syscall_io_setup 206)
+(define syscall_io_destroy 207)
+(define syscall_io_getevents 208)
+(define syscall_io_submit 209)
+(define syscall_io_cancel 210)
+(define syscall_get_thread_area 211)
+(define syscall_lookup_dcookie 212)
+(define syscall_epoll_create 213)
+(define syscall_epoll_ctl_old 214)
+(define syscall_epoll_wait_old 215)
+(define syscall_remap_file_pages 216)
+(define syscall_getdents64 217)
+(define syscall_set_tid_address 218)
+(define syscall_restart_syscall 219)
+(define syscall_semtimedop 220)
+(define syscall_fadvise64 221)
+(define syscall_timer_create 222)
+(define syscall_timer_settime 223)
+(define syscall_timer_gettime 224)
+(define syscall_timer_getoverrun 225)
+(define syscall_timer_delete 226)
+(define syscall_clock_settime 227)
+(define syscall_clock_gettime 228)
+(define syscall_clock_getres 229)
+(define syscall_clock_nanosleep 230)
+(define syscall_exit_group 231)
+(define syscall_epoll_wait 232)
+(define syscall_epoll_ctl 233)
+(define syscall_tgkill 234)
+(define syscall_utimes 235)
+(define syscall_vserver 236)
+(define syscall_mbind 237)
+(define syscall_set_mempolicy 238)
+(define syscall_get_mempolicy 239)
+(define syscall_mq_open 240)
+(define syscall_mq_unlink 241)
+(define syscall_mq_timedsend 242)
+(define syscall_mq_timedreceive 243)
+(define syscall_mq_notify 244)
+(define syscall_mq_getsetattr 245)
+(define syscall_kexec_load 246)
+(define syscall_waitid 247)
+(define syscall_add_key 248)
+(define syscall_request_key 249)
+(define syscall_keyctl 250)
+(define syscall_ioprio_set 251)
+(define syscall_ioprio_get 252)
+(define syscall_inotify_init 253)
+(define syscall_inotify_add_watch 254)
+(define syscall_inotify_rm_watch 255)
+(define syscall_migrate_pages 256)
+(define syscall_openat 257)
+(define syscall_mkdirat 258)
+(define syscall_mknodat 259)
+(define syscall_fchownat 260)
+(define syscall_futimesat 261)
+(define syscall_newfstatat 262)
+(define syscall_unlinkat 263)
+(define syscall_renameat 264)
+(define syscall_linkat 265)
+(define syscall_symlinkat 266)
+(define syscall_readlinkat 267)
+(define syscall_fchmodat 268)
+(define syscall_faccessat 269)
+(define syscall_pselect6 270)
+(define syscall_ppoll 271)
+(define syscall_unshare 272)
+(define syscall_set_robust_list 273)
+(define syscall_get_robust_list 274)
+(define syscall_splice 275)
+(define syscall_tee 276)
+(define syscall_sync_file_range 277)
+(define syscall_vmsplice 278)
+(define syscall_move_pages 279)
+(define syscall_utimensat 280)
+(define syscall_epoll_pwait 281)
+(define syscall_signalfd 282)
+(define syscall_timerfd_create 283)
+(define syscall_eventfd 284)
+(define syscall_fallocate 285)
+(define syscall_timerfd_settime 286)
+(define syscall_timerfd_gettime 287)
+(define syscall_accept4 288)
+(define syscall_signalfd4 289)
+(define syscall_eventfd2 290)
+(define syscall_epoll_create1 291)
+(define syscall_dup3 292)
+(define syscall_pipe2 293)
+(define syscall_inotify_init1 294)
+(define syscall_preadv 295)
+(define syscall_pwritev 296)
+(define syscall_rt_tgsigqueueinfo 297)
+(define syscall_perf_event_open 298)
+(define syscall_recvmmsg 299)
+(define syscall_fanotify_init 300)
+(define syscall_fanotify_mark 301)
+(define syscall_prlimit64 302)
+(define syscall_name_to_handle_at 303)
+(define syscall_open_by_handle_at 304)
+(define syscall_clock_adjtime 305)
+(define syscall_syncfs 306)
+(define syscall_sendmmsg 307)
+(define syscall_setns 308)
+(define syscall_getcpu 309)
+(define syscall_process_vm_readv 310)
+(define syscall_process_vm_writev 311)
+(define syscall_kcmp 312)
+(define syscall_finit_module 313)
+(define syscall_sched_setattr 314)
+(define syscall_sched_getattr 315)
+(define syscall_renameat2 316)
+(define syscall_seccomp 317)
+(define syscall_getrandom 318)
+(define syscall_memfd_create 319)
+(define syscall_kexec_file_load 320)
+(define syscall_bpf 321)
+(define syscall_execveat 322)
+(define syscall_userfaultfd 323)
+(define syscall_membarrier 324)
+(define syscall_mlock2 325)
+(define syscall_copy_file_range 326)
+(define syscall_preadv2 327)
+(define syscall_pwritev2 328)
+(define syscall_pkey_mprotect 329)
+(define syscall_pkey_alloc 330)
+(define syscall_pkey_free 331)
+(define syscall_statx 332)
+(define syscall_io_pgetevents 333)
+(define syscall_rseq 334)
+(define syscall_pidfd_send_signal 424)
+(define syscall_io_uring_setup 425)
+(define syscall_io_uring_enter 426)
+(define syscall_io_uring_register 427)
+(define syscall_open_tree 428)
+(define syscall_move_mount 429)
+(define syscall_fsopen 430)
+(define syscall_fsconfig 431)
+(define syscall_fsmount 432)
+(define syscall_fspick 433)
+(define syscall_pidfd_open 434)
+(define syscall_clone3 435)
+(define syscall_close_range 436)
+(define syscall_openat2 437)
+(define syscall_pidfd_getfd 438)
+(define syscall_faccessat2 439)
+(define syscall_process_madvise 440)
+(define syscall_epoll_pwait2 441)
+(define syscall_mount_setattr 442)
+(define syscall_landlock_create_ruleset 444)
+(define syscall_landlock_add_rule 445)
+(define syscall_landlock_restrict_self 446)

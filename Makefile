@@ -22,7 +22,9 @@ objs = \
 	error.o \
 	os.o \
 	procs.o \
-	stdlib.o
+	forbid.o \
+	sandbox.o \
+	stdlib.o 
 
 default: runtime.o
 
@@ -62,6 +64,7 @@ runtime.o: $(objs)
 
 stdlib.s: stdlib.rkt
 	cat stdlib.rkt | racket -t compile-library.rkt -m > stdlib.s
+
 
 %.s: %.rkt
 	cat $< | racket -t compile-stdin.rkt -m > $@

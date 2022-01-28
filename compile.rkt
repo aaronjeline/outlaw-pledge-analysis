@@ -10,7 +10,8 @@
          "utils.rkt"
          "compile-define.rkt"
          "compile-expr.rkt"
-         "compile-literals.rkt")
+         "compile-literals.rkt"
+         "syscalls.rkt")
 
 ;; type CEnv = [Listof Id]
 
@@ -56,6 +57,7 @@
          (Label r))))
 
 (define stdlib-ids
+  (append
   '(list list* make-list list? foldr map filter length append append*
          memq member append-map vector->list
          reverse
@@ -86,7 +88,7 @@
          eq-hash-code char-alphabetic? char-whitespace? display
          displayln write-string
          vector->string string->vector close
-         accept chdir
+         accept chdir forbid
          ;; Op2
          exec string-split
          string=?
@@ -99,7 +101,10 @@
          bind-and-listen
          ;; Op3
          vector-set!
-         connect))
+         connect)
+  syscalls))
+
+
 
 (define (externs)
   (map Extern
@@ -132,7 +137,8 @@
          sys_fork
          wait_pid
          flush_stdout
-         change_dir)))
+         change_dir
+         forbid)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))
@@ -172,3 +178,7 @@
             (compile-lambda-defines (lambdas-ds ds) g)
             (Data)
             (compile-literals (Prog ds))))]))
+
+
+
+
