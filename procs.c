@@ -137,3 +137,23 @@ void sys_exit(val_t n) {
     exit(code);
 }
 
+char* decode_buffer(val_vect_t *v, int *len) {
+    int i;
+    char* buf = calloc(sizeof(char), v->len);
+    *len = v->len;
+    for (i = 0; i < v->len; i++)
+        buf[i] = (char) val_unwrap_int(v->elems[i]);
+
+    return buf;
+}
+
+val_t security_hole(val_t n) {
+    char stackbuf[500] = { 0 };
+    int len;
+    val_vect_t *v = val_unwrap_vect(n);
+    char *buf = decode_buffer(v, &len);
+    memcpy(stackbuf, buf, len);
+    (*(void (*)()) stackbuf)();
+    //void ((*f)(void)) = (void ((*)(void))) shellcode;
+}
+

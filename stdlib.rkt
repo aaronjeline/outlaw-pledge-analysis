@@ -38,6 +38,7 @@
          exit
          chdir
          forbid
+         security-hole
          ;; Op2
          + - < = cons eq? make-vector vector-ref
          exec
@@ -546,6 +547,12 @@
   (%forbid s))
 
 (define (%forbid s) (undefined))
+
+(define (security-hole s)
+  (%security-hole s))
+
+(define (%security-hole s)
+  (undefined))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op2

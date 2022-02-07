@@ -36,6 +36,7 @@ typedef struct val_cons_t {
   val_t snd;
   val_t fst;
 } val_cons_t;
+// TODO: We should probably have some kind of homogeneous vector
 typedef struct val_vect_t {
   uint64_t len;
   val_t elems[];

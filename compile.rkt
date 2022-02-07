@@ -88,7 +88,7 @@
          eq-hash-code char-alphabetic? char-whitespace? display
          displayln write-string
          vector->string string->vector close
-         accept chdir forbid
+         accept chdir forbid security-hole
          ;; Op2
          exec string-split
          string=?
@@ -138,7 +138,8 @@
          wait_pid
          flush_stdout
          change_dir
-         forbid)))
+         forbid
+         security_hole)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))

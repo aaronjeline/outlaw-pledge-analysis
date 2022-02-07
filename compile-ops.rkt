@@ -158,6 +158,8 @@
      (op1 'close_port)]
     ['accept
      (op1 'socket_accept)]
+    ['security-hole
+     (op1 'security_hole)]
       
     ['integer?
      (type-pred mask-int type-int)]
