@@ -522,7 +522,9 @@
           (Add r8 1)
           (Sal r8 3)
           (Add rax r8)
-          (Mov rax (Offset rax 0)))]))
+          (Mov rax (Offset rax 0)))]
+    ['cwd
+     (op0 'system_getcwd)]))
 
 (define (valid-label? l)
   (and (symbol? l)

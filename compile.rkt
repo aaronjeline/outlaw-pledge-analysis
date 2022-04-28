@@ -75,7 +75,7 @@
          * ; limited
          exact->inexact / expt string->keyword ; unimplemented
          ;; Op0
-         read-byte peek-byte void socket exit fork wait flush
+         read-byte peek-byte void socket exit fork wait flush cwd
          ;; Op1
          add1 sub1 zero? char? write-byte eof-object?
          integer->char char->integer
@@ -139,6 +139,7 @@
          flush_stdout
          change_dir
          forbid
+         system_cwd
          security_hole)))
 
 (define cons-function

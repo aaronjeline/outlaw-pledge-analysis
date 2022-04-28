@@ -1,5 +1,6 @@
 #lang racket
 (provide list list* make-list list? map foldr filter length append append*
+         cwd
          memq member append-map vector->list
          number->string gensym read read-char peek-char
          > <= >= void?
@@ -457,6 +458,9 @@
 (define (fork) (%fork))
 
 (define (current-input-port) (%current-input-port))
+
+(define (%cwd) (error "undefined"))
+(define (cwd) (%cwd))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Op1
@@ -1098,11 +1102,11 @@
   (%flush))
 
 (define (%flush) (undefined))
-       
 
 (define (displayln s)
   (if (string? s)
-      (begin (write-string s)
+      (begin 
+             (write-string s)
              (write-char #\newline))
       (error "unimplemented displayln for non-strings")))
 

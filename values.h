@@ -53,8 +53,15 @@ typedef struct val_struct_t {
   val_t name;
   val_t* vals;
 } val_struct_t;
+
+enum port_kind {
+    STDFILE,
+    SOCKET,
+};
+
 typedef struct val_port_t {
   val_t symbol;
+  enum port_kind kind;
   int fd;
   int closed;
 } val_port_t;

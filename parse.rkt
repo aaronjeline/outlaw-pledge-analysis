@@ -69,7 +69,7 @@
        [e (list (Defn x e))])]
     [(cons 'struct _)
      (parse-struct s)]
-    [_ (error "Parse defn error" s)]))
+    [_ (error (format "Parse defn error: ~a" s))]))
 
   ;; S-Expr -> [Listof Defn]
 (define (parse-struct s)

@@ -64,10 +64,11 @@ val_t print_codepoint_out(val_t c)
   return val_wrap_void();
 }
 
-val_port_t *initialize_port(int fd) {
+val_port_t *initialize_port(int fd, enum port_kind k) {
     val_port_t *p = malloc(sizeof *p);
     p->fd = fd;
     p->closed = 0;
+    p->kind = k;
     val_symb_t* s;
     s = calloc(6+2, sizeof(val_char_t));
     s->len = 4;
@@ -135,7 +136,7 @@ val_t open_input_file(val_t in, val_t flags) {
 
 
 
-     return val_wrap_port(initialize_port(fd));
+     return val_wrap_port(initialize_port(fd, STDFILE));
 }
 
 void check_open(val_port_t *p) {
@@ -171,6 +172,7 @@ val_t read_bytes(val_t port, val_t vec) {
 }
 
 val_t write_bytes(val_t port, val_t vec) {
+    puts("write_bytes entered");
     val_vect_t *vect;
     val_port_t *p;
     char *buf;
@@ -180,17 +182,22 @@ val_t write_bytes(val_t port, val_t vec) {
     vect = val_unwrap_vect(vec);
     p = val_unwrap_port(port);
     check_open(p);
+    puts("write_bytes: type checks passed");
 
     buf = malloc(vect->len);
 
     for (i = 0; i < vect->len; i++)
         buf[i] = (char) val_unwrap_int(vect->elems[i]);
 
+    puts("write_bytes: copied data");
+
     written = write(p->fd, buf, vect->len);
+    puts("write_bytes: written");
 
     if (written < 0)
         errno_die("write_bytes");
 
+    free(buf);
     return val_wrap_int(written);
 }
 
@@ -228,6 +235,14 @@ val_t peek_byte_port(val_t port, val_t skip)
 val_t close_port(val_t p) {
     val_port_t *port = val_unwrap_port(p);
 
+    // Port kind specific operations
+    switch (port->kind) {
+        case SOCKET:
+            shutdown(port->fd, SHUT_RDWR);
+            break;
+        default: break;
+    }
+
     close(port->fd);
     port->closed = 1;
 
@@ -240,7 +255,7 @@ val_t create_socket(void) {
     if (fd < 0)
         errno_die("create_socket");
 
-    return val_wrap_port(initialize_port(fd));
+    return val_wrap_port(initialize_port(fd, SOCKET));
 }
 
 
@@ -322,7 +337,18 @@ val_t socket_accept(val_t port) {
     if (socket < 0)
         errno_die("accept()");
 
-    return val_wrap_port(initialize_port(newSock));
+    return val_wrap_port(initialize_port(newSock, SOCKET));
+}
+
+val_t system_getcwd(void) {
+    puts("system_getcwd");
+    int len;
+    char *buf = calloc(sizeof(char), 256);
+    getcwd(buf, 256);
+    len = strlen(buf) + 1;
+    buf = realloc(buf, len);
+
+    return val_wrap_str(create_string(buf));
 }
 
 val_t change_dir(val_t dest) {

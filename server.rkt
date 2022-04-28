@@ -13,12 +13,12 @@
       (handle-client client)
       (loop))))
 
+
 (define (handle-client client)
   (let [(v (vector 0 0 0 0 0))]
     (begin
       (read-bytes client v)
       (displayln "Got msg: ")
-      (displayln (vector->string v))
       (write-bytes client v)
       (close client))))
 
