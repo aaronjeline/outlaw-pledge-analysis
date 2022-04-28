@@ -524,7 +524,9 @@
           (Add rax r8)
           (Mov rax (Offset rax 0)))]
     ['cwd
-     (op0 'system_getcwd)]))
+     (op0 'system_getcwd)]
+    ['arg-ref
+     (op0 'arg_ref)]))
 
 (define (valid-label? l)
   (and (symbol? l)

@@ -17,6 +17,14 @@
 void utf8_encode_string(val_str_t *, char *);
 int utf8_encode_char(val_char_t, char *);
 
+extern int global_argc;
+extern const char **global_argv;
+
+val_t arg_ref(val_t ix) {
+    int i = val_unwrap_int(ix);
+    return val_wrap_str(create_string(global_argv[i]));
+}
+
 void errno_die(char *place) {
     perror(place);
     error_handler(NULL);

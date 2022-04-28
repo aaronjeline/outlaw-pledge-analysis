@@ -89,6 +89,7 @@
          displayln write-string
          vector->string string->vector close
          accept chdir forbid security-hole
+         arg-ref
          ;; Op2
          exec string-split
          string=?
@@ -140,7 +141,8 @@
          change_dir
          forbid
          system_cwd
-         security_hole)))
+         security_hole
+         arg_ref)))
 
 (define cons-function
   (let ((code (gensym 'cons_code))

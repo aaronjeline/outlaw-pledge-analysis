@@ -1,6 +1,7 @@
 #lang racket
 (provide list list* make-list list? map foldr filter length append append*
          cwd
+         arg-ref
          memq member append-map vector->list
          number->string gensym read read-char peek-char
          > <= >= void?
@@ -444,6 +445,9 @@
 
 (define (%wait)
   (undefined))
+
+(define (arg-ref i) (%arg-ref))
+(define (%arg-ref) (error "arg-ref"))
 
 ;(define (peek-byte) (%peek-byte))
 (define peek-byte

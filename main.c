@@ -24,10 +24,15 @@ void raise_error(val_str_t* msg)
   return error_handler(msg);
 }
 
+int global_argc;
+char **global_argv;
+
 int main(int argc, char** argv)
 {
   in = stdin;
   out = stdout;
+  global_argc = argc;
+  global_argv = argv;
   error_handler = &error_exit;
   heap = malloc(8 * heap_size);
 

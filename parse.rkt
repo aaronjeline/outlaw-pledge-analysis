@@ -338,6 +338,7 @@
          eq-hash-code 
          char-alphabetic? char-whitespace?
          procedure? vector->string string->vector close
+         arg-ref
          accept exit chdir forbid security-hole))
 (define op2
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
