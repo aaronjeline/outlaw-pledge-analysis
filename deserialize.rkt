@@ -29,5 +29,7 @@
     [(App e es) (cons (unparse-e e) (map unparse-e es))]
     [(Lam f xs e) `(λ ,xs ,(unparse-e e))]
     [(LamRest f xs x e) `(λ ,(cons xs x) ,(unparse-e e))]
-    ;[(LamCase f cs) `(case-lambda ,(map unparse-e cs))]
+    #;[(LamCase f cs) `(case-lambda ,(map (λ (x) (match x
+                                                 [(LamRest _ ids id e) `[,(cons ids id) ,(unparse-e e)]]
+                                                 [(Lam _ ids e) `[,ids ,(unparse-e e)]])) cs))]
     #;[(Apply e es el) ]))
