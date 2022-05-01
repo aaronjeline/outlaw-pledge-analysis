@@ -4,14 +4,21 @@
 ;; this takes advantage of the desugaring in the outlaw parser without having to use it's ast
 
 
-;;Prog -> [Listof exp]
+;;Prog -> Listof exp
 ;; unparses a program need to add definitions
 ;; Need to add definitions to exp? auth2
 ;; Maybe should desugar to lets
-(define (unparse e)
-  (match e
+(define (unparse p)
+  (match p
     [(Prog '()) '()]
-    [(Prog es) (map unparse-e es)]))
+    [(Prog ds) (unparse-ds ds)]))
+
+;;Defn -> exp
+(define (unparse-ds ds)
+  (match ds
+    [(list (Defn f l)) (unparse-e l)] ;; not good, how to determine expressions?
+    [(cons (Defn f l) rest)
+     `(let ((,f ,(unparse-e l))) ,(unparse-ds rest))]))
    
 
 ;;Expr -> exp
@@ -29,7 +36,7 @@
     [(App e es) (cons (unparse-e e) (map unparse-e es))]
     [(Lam f xs e) `(λ ,xs ,(unparse-e e))]
     [(LamRest f xs x e) `(λ ,(cons xs x) ,(unparse-e e))]
-    #;[(LamCase f cs) `(case-lambda ,(map (λ (x) (match x
-                                                 [(LamRest _ ids id e) `[,(cons ids id) ,(unparse-e e)]]
+    [(LamCase f cs) `(case-lambda ,(map (λ (x) (match x
+                                                 [(LamRest _ _ ids e) `[,ids ,(unparse-e e)]]
                                                  [(Lam _ ids e) `[,ids ,(unparse-e e)]])) cs))]
     #;[(Apply e es el) ]))
