@@ -2,19 +2,19 @@
 (require threading)
 
 (define syscalls
-  `((exec ((execvp 2)))
-    (fork ((fork 0)))
-    (wait ((wait 0)))
-    (displayln ((write 1)))
-    (read-line ((read 0)))
-    (bind-and-listen '((bind 1) (listen 1)))
-    (socket ((socket 0)))
-    (read-bytes ((read 2)))
-    (write-bytes ((write 2)))
-    (close ((close 1)))
-    (accept ((accept 1)))
-    (chdir ((chdir 1)))
-    (wait-for-child ((wait 0)))))
+  `((exec ((syscall_execvp 2)))
+    (fork ((syscall_fork 0)))
+    (wait ((syscall_wait 0)))
+    (displayln ((syscall_write 1)))
+    (read-line ((syscall_read 0)))
+    (bind-and-listen '((syscall_bind 1) (syscall_listen 1)))
+    (socket ((syscall_socket 0)))
+    (read-bytes ((syscall_read 2)))
+    (write-bytes ((syscall_write 2)))
+    (close ((syscall_close 1)))
+    (accept ((syscall_accept 1)))
+    (chdir ((syscall_chdir 1)))
+    (wait-for-child ((syscall_wait 0)))))
 
 
 ;; Lookup a function in the syscall map
