@@ -5,10 +5,12 @@
   (begin
     (display ":> ")
     (let [(in (read-line))]
-      (match (string-split in #\space)
-        [(list "exit") 'goodbye]
-        [(list "cd" dir) (change-dir dir)]
-        [cmd (run-command cmd)]))))
+      (let [(args (string-split in #\space))]
+	(if (string=? "exit" (car args))
+	  'goodbye
+	  (if (string=? "cd" (car args))
+	    (change-dir (car (cdr args)))
+	    (run-command args)))))))
 
 (define (change-dir dir)
   (begin
