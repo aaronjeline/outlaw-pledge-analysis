@@ -3,6 +3,33 @@
 ;; deserializer from the outlaw ast back to s-expressions
 ;; this takes advantage of the desugaring in the outlaw parser without having to use it's ast
 
+;;racket -> exp
+(define (unfold-letrec e)
+  (match e
+    [(? symbol?) e]
+    [(list 'if e0 e1 e2) (list 'if (unfold-letrec e0) (unfold-letrec e1) (unfold-letrec e2))]
+    [`(let ((,x ,def)) ,body) `(let ((,x ,(unfold-letrec def))) ,(unfold-letrec body))]
+    [`(letrec ((,x (λ ,(? list? xs) ,def))) ,body) `(let ((,x (rec ,x ,xs ,(unfold-letrec def)))) ,(unfold-letrec body))]
+    [`(letrec ((,x ,def)) ,body) `(letrec ((,x ,(unfold-letrec def))) ,(unfold-letrec body))]
+    [`(λ ,(? list? xs) ,def) `(λ ,xs ,(unfold-letrec def))]
+    [`(rec ,name ,xs ,def) (if (list? xs) `(rec ,name ,xs ,(unfold-letrec def)) `(rec ,name (,xs) ,(unfold-letrec def)))]
+    [(cons 'begin es)
+     (cons 'begin
+           (cons (for/list [(e es)]
+                   (unfold-letrec e))))]
+    [`(pledge ,call) e]
+    [(cons 'syscall (cons (? symbol? call) rst))
+     (cons 'syscall
+            (cons
+             call
+             (for/list [(e rst)]
+               (unfold-letrec e))))]
+    [(? list? es)
+     (list 'app (for/list [(e es)]
+                              (unfold-letrec e)))]
+    [_ e]))
+
+
 
 ;;Prog -> Listof exp
 ;; unparses a program need to add definitions
