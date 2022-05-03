@@ -7,6 +7,13 @@
 
 (bind-and-listen servSock port)
 
+(define (handle-client client)
+    (begin
+      (read-bytes client buffer)
+      (write-bytes client (prepare-response
+                            (get-url buffer)))
+      (close client)))
+
 (define (loop)
   (let [(client (accept servSock))]
     (begin
@@ -34,13 +41,5 @@
   (string->ascii (string-append (string-append header url) footer)))
 
 (define buffer (vector 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
-
-
-(define (handle-client client)
-    (begin
-      (read-bytes client buffer)
-      (write-bytes client (prepare-response
-                            (get-url buffer)))
-      (close client)))
 
 (loop)

@@ -348,7 +348,7 @@
   
 (define (run-algo e (needs-labelling #f))
   (define g (cdr (run-and-get-graph e needs-labelling)))
-  (hash-ref syscall-map (get-label e)))
+  (hash-ref syscall-map (get-label e) (λ () (set))))
 
 
 
