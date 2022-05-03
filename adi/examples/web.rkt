@@ -1,45 +1,51 @@
 #lang racket
-(require "stdlib.rkt")
+(require "../../stdlib.rkt")
 
-(define port 8080)
+(let ((port 8080))
 
-(define servSock (socket))
+(let ((servSock (socket)))
 
-(bind-and-listen servSock port)
+  
+(let ((d (bind-and-listen servSock port)))
+  (let ((header "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><h1>Hello From OutLaw</h1>You accessed:"))
 
-(define (handle-client client)
-    (begin
+(let ((footer "</html>"))
+  (let ((string->ascii 
+  (λ (s) (list->vector
+    (map char->integer (string->list s))))))
+
+        
+(let ((second
+  (λ (lst) (car (cdr lst)))))
+
+
+(let ((ascii->string 
+  (λ (v) (list->string (map integer->char (vector->list v))))))
+
+(let ((get-url 
+  (λ (v) (second (string-split (ascii->string v) #\space)))))
+
+
+(let ((prepare-response
+  (λ (url) (string->ascii (string-append (string-append header url) footer)))))
+  (let ((buffer (vector 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)))
+
+  (let ((handle-client 
+    (λ (client) (begin
       (read-bytes client buffer)
       (write-bytes client (prepare-response
                             (get-url buffer)))
-      (close client)))
+      (close client)))))
 
-(define (loop)
+(letrec ((loop
   (let [(client (accept servSock))]
     (begin
       (handle-client client)
-      (loop))))
+      (loop)))))
+  
 
-(define (string->ascii s)
-  (list->vector
-    (map char->integer (string->list s))))
 
-(define (ascii->string v)
-  (list->string (map integer->char (vector->list v))))
-    
-(define (second lst)
-  (car (cdr lst)))
 
-(define header "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><h1>Hello From OutLaw</h1>You accessed:")
 
-(define footer "</html>")
 
-(define (get-url v)
-  (second (string-split (ascii->string v) #\space)))
-
-(define (prepare-response url)
-  (string->ascii (string-append (string-append header url) footer)))
-
-(define buffer (vector 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
-
-(loop)
+(loop))))))))))))))

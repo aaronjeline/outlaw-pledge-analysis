@@ -1,25 +1,25 @@
 #lang racket
-(require "stdlib.rkt")
+(require "../../stdlib.rkt")
 
-(define port 1337)
+(let ((port 1337))
 
-(define servSock (socket))
+(let  ((servSock (socket)))
 
-(bind-and-listen servSock port)
+(let ((x (bind-and-listen servSock port)))
 
-(define (handle-client client)
-  (let [(v (vector 0 0 0 0 0))]
+(let ((handle-client 
+  (λ (client) (let [(v (vector 0 0 0 0 0))]
     (begin
       (read-bytes client v)
       (displayln "Got msg: ")
       (displayln (vector->string v))
       (write-bytes client v)
-      (close client))))
+      (close client))))))
       
-(define (loop)
+(letrec ((loop
   (let [(client (accept servSock))]
     (begin
       (handle-client client)
-      (loop))))
+      (loop)))))
 
-(loop)
+(loop))))))
