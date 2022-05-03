@@ -24,7 +24,7 @@
 
 (define (wait-for-child)
   (let [(exit-code (wait))]
-    (if (zero? exit-code)
+    (if (= 0 exit-code)
         (loop)
         (begin
           (displayln
