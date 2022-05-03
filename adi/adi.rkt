@@ -129,6 +129,7 @@
     ['⊥ #t]
     ['empty #t]
     [_ #f]))
+
 (define value?
   (or/c number? boolean? pointer? symbolic? closure? rec-closure? procedure? string? char?))
 
@@ -211,7 +212,9 @@
   (if (and (string? a) (string? b))
       (set (string-append a b))
       (set 'string)))
- 
+(define/simple (eval-vector->string a)
+(set 'string))
+
 (define/simple (<=^ a b)
   (if (and (number? a) (number? b))
       (set (<= a b))
@@ -325,7 +328,7 @@
 (define init-env (bind empty-env `((+ ,+^) (* ,*^) (= ,=^) (- ,-^) (<= ,<=^) (>= ,>=^) (< ,<^) (> ,>^) (add1 ,add1^) (sub1 ,sub1^)
                                            (box ,eval-box) (unbox ,eval-unbox) (string=? ,string=?^)
                                            (set-box! ,eval-set-box!) (string-append ,eval-string-append)
-                                           (cons ,eval-cons)
+                                           (cons ,eval-cons) (vector->string ,eval-vector->string)
                                            (empty? ,eval-empty?)
                                            (car ,eval-car) (cdr ,eval-cdr)
                                            (vector ,eval-vector))))
