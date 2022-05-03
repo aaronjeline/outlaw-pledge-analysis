@@ -18,7 +18,7 @@
 (define (run-command args)
   (let [(name (car args))
         (pid (fork))]
-    (if (zero? pid)
+    (if (= 0 pid)
         (exec name args)
         (wait-for-child))))
 
