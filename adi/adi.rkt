@@ -195,6 +195,9 @@
 (define/simple (+^ a b)
   (set 'nat))
 
+(define/simple (eval-is-printable? a)
+  (set #t #f))
+
 (define/simple (*^ a b)
   (set 'nat))
 
@@ -214,6 +217,19 @@
       (set 'string)))
 (define/simple (eval-vector->string a)
 (set 'string))
+
+(define/simple (eval-list->string a)
+(set 'string))
+
+(define/simple (eval-number->string a)
+  (if (number? a)
+      (set (number->string a))
+      (set 'string)))
+
+(define/simple (eval-integer->char a)
+  (if (integer? a)
+      (set (integer->char a))
+      (set 'char)))
 
 (define/simple (<=^ a b)
   (if (and (number? a) (number? b))
@@ -329,8 +345,9 @@
                                            (box ,eval-box) (unbox ,eval-unbox) (string=? ,string=?^)
                                            (set-box! ,eval-set-box!) (string-append ,eval-string-append)
                                            (cons ,eval-cons) (vector->string ,eval-vector->string)
-                                           (empty? ,eval-empty?)
-                                           (car ,eval-car) (cdr ,eval-cdr)
+                                           (empty? ,eval-empty?) (number->string ,eval-number->string)
+                                           (car ,eval-car) (cdr ,eval-cdr) (list->string ,eval-list->string)
+                                           (integer->char ,eval-integer->char) (is-printable? ,eval-is-printable?)
                                            (vector ,eval-vector))))
 
 
