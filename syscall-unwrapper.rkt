@@ -1,22 +1,32 @@
 #lang racket
 (require threading)
 
-
-(struct syscall-entry (name syscall-name arity))
-
 (define syscalls
-  (list
-   (syscall-entry 'exec 'execvp 2)
-   (syscall-entry 'fork 'fork 0)
-   (syscall-entry 'wait 'wait 0)
-   (syscall-entry 'displayln 'write 1)
-   (syscall-entry 'read-line 'read 0)))
+  `((exec ((execvp 2)))
+    (fork ((fork 0)))
+    (wait ((wait 0)))
+    (displayln ((write 1)))
+    (read-line ((read 0)))
+    (bind-and-listen '((bind 1) (listen 1)))
+    (socket ((socket 0)))
+    (read-bytes ((read 2)))
+    (write-bytes ((write 2)))
+    (close ((close 1)))
+    (accept ((accept 1)))
+    (chdir ((chdir 1)))
+    (wait-for-child ((wait 0)))))
+
 
 ;; Lookup a function in the syscall map
 (define (find-syscall name)
-  (match (filter (λ (se) (equal? (syscall-entry-name se) name)) syscalls)
-    ['() #f]
-    [(cons e _) e]))
+  (match (assoc name syscalls)
+    [#f #f]
+    [(list _ calls) calls]))
+
+(define (process-file filename)
+  (~> filename
+      preprocess-file
+      traverse))
 
 ;; Process the file into an s-expression
 (define (preprocess-file filename)
@@ -50,16 +60,20 @@
     [(? symbol?)
      (match (find-syscall exp)
        [#f exp]
-       [se (build-syscall-wrapper se)])]
+       [se (build-syscall-wrapper/all se)])]
     [(? list?)
      (map traverse exp)]
     [_ exp]))
 
+(define (build-syscall-wrapper/all ses)
+  `(begin
+     ,@(map build-syscall-wrapper ses)))
+
 ;; Build the λ wrapper for a syscall
 (define (build-syscall-wrapper se)
-  (let ((args (build-args (syscall-entry-arity se))))
+  (let ((args (build-args (second se))))
     `(λ ,args
-       (syscall ,(syscall-entry-syscall-name se) ,@args))))
+       (syscall ,(first se) ,@args))))
 
 ;; Build a list of argument names
 (define (build-args n)
