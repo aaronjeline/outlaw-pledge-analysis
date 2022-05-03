@@ -498,7 +498,7 @@
     [(closure params body frame)
      (define ρ0 (bind (bind empty-env frame) (zip params args)))
      (eval body ρ0 s (add-edge context l (get-first-control-label body)) seen)]
-    [(rec-closure fname params body frame) ;;infinte looping error
+    [(rec-closure fname params body frame) ;;infinite looping error
      (define p0 (bind (bind empty-env frame) (zip (cons fname params) (cons f args))))
      (eval body p0 s (add-edge context l (get-first-control-label body)) seen)]
     [_ (error "Application of non-function: " f)]))
@@ -652,10 +652,10 @@
                                                                  (match-let
                                                                      ([(cons (list def0 bod) st1) (pledges-insert (list def body) st)])
                                                                    (cons `(begin (pledge ,(get-sub s st))
-                                                                                 `(let ((,x ,def0)) ,bod)) st1))
+                                                                                 (let ((,x ,def0)) ,bod)) st1))
                                                                  (match-let
                                                                      ([(cons (list def0 bod) s1) (pledges-insert (list def body) s)])
-                                                                   (cons `(let ((,x ,def0)) ,bod) s1))))]
+                                                                    (cons `(let ((,x ,def0)) ,bod) s1))))]
     [`(λ (label ,l) ,(? list? xs) ,def) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                                 (match-let ([(cons def0 st0) (pledge-insert def st)])
                                                                   (cons `(begin (pledge ,(get-sub s st))
@@ -676,10 +676,10 @@
     [`(syscall (label ,l) ,call ,rst ...) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                                   (match-let ([(cons es0 st0) (pledges-insert rst st)])
                                                                     (cons `(begin (pledge ,(get-sub s st))
-                                                                                  ,(cons 'syscall (cons call es0))) st0))
+                                                                                  ,(cons call es0)) st0))
                                                                   
                                                                   (match-let ([(cons es0 s0) (pledges-insert rst s)])
-                                                                    (cons (cons 'syscall (cons call es0)) s0))))]
+                                                                    (cons (cons call es0) s0))))]
     [`(app (label ,l) ,es) (let ((st (ref l))) (displayln es) (if (< (set-count st) (set-count s))
                                                                   (match-let ([(cons es0 st0) (pledges-insert es st)])
                                                                     (cons 
@@ -695,16 +695,16 @@
   (check-equal? (let ((le (label-exp '(begin (syscall fork) (syscall displayln 5) (syscall exec) (syscall displayln 6)))))
                   (let ((s (run-algo le #f)))
                     (car (pledge-insert le s))))
-                '(begin (syscall fork) (begin (pledge fork) (syscall displayln 5)) (syscall exec) (begin (pledge exec) (syscall displayln 6))))
+                '(begin (fork) (begin (pledge fork) (displayln 5)) (exec) (begin (pledge exec) (displayln 6))))
   (check-equal? (let ((le (label-exp '(let ((f (λ (x) (syscall fork)))) (if (f 1) 3 4)))))
                   (let ((s (run-algo le #f)))
                     (car (pledge-insert le s))))
-                '(let ((f (λ (x) (syscall fork)))) (if (f 1) (begin (pledge fork) 3) (begin (pledge fork) 4))))
+                '(let ((f (λ (x) (fork)))) (if (f 1) (begin (pledge fork) 3) (begin (pledge fork) 4))))
                 
   (check-equal? (let ((le (label-exp '(let ((f (syscall fork))) (if f (syscall displayln 5) (syscall displayln 7))))))
                   (let ((s (run-algo le #f)))
                     (car (pledge-insert le s))))
-                '(let ((f (syscall fork))) (begin (pledge fork) (if f (syscall displayln 5) (syscall displayln (begin (pledge displayln) 7)))))))
+                '(let ((f (fork))) (begin (pledge fork) (if f (displayln 5) (displayln (begin (pledge displayln) 7)))))))
 ;;examples
 ;;(let ((x (syscall fork))) (begin (pledge fork) (if (let ((x #t)) (if (= 3 4) #f x)) (+ 3 4) (add1 2))))
 
@@ -730,3 +730,28 @@
 (define (self-evaluating? e)
   (or (number? e) (boolean? e) (eq? 'empty e)))
 
+(define e '(let ((port 1337))
+
+(let  ((servSock (socket)))
+
+(let ((x (bind-and-listen servSock port)))
+
+(let ((handle-client 
+  (λ (client) (let [(v (vector 0 0 0 0 0))]
+    (begin
+      (read-bytes client v)
+      (displayln "Got msg: ")
+      (displayln (vector->string v))
+      (write-bytes client v)
+      (close client))))))
+      
+(letrec ((loop
+  (let [(client (accept servSock))]
+    (begin
+      (handle-client client)
+      (loop)))))
+
+(loop)))))))
+(require "../deserialize.rkt")
+(define ie (pre-process e))
+(define le (label-exp ie))

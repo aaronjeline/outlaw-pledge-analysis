@@ -1,5 +1,6 @@
 #lang racket
 (require threading)
+(provide traverse)
 
 (define syscalls
   `((exec ((syscall_execvp 2)))

@@ -1,32 +1,59 @@
 #lang racket
-(require "parse.rkt" "ast.rkt") 
+(require "parse.rkt" "ast.rkt")
+(provide pre-process)
 ;; deserializer from the outlaw ast back to s-expressions
 ;; this takes advantage of the desugaring in the outlaw parser without having to use it's ast
 
 ;;racket -> exp
-(define (unfold-letrec e)
+(define (pre-process e)
   (match e
     [(? symbol?) e]
-    [(list 'if e0 e1 e2) (list 'if (unfold-letrec e0) (unfold-letrec e1) (unfold-letrec e2))]
-    [`(let ((,x ,def)) ,body) `(let ((,x ,(unfold-letrec def))) ,(unfold-letrec body))]
-    [`(letrec ((,x (λ ,(? list? xs) ,def))) ,body) `(let ((,x (rec ,x ,xs ,(unfold-letrec def)))) ,(unfold-letrec body))]
-    [`(letrec ((,x ,def)) ,body) `(let ((,x (rec ,x empty ,(unfold-letrec def)))) ,(unfold-letrec body))]
-    [`(λ ,(? list? xs) ,def) `(λ ,xs ,(unfold-letrec def))]
-    [`(rec ,name ,xs ,def) (if (list? xs) `(rec ,name ,xs ,(unfold-letrec def)) `(rec ,name (,xs) ,(unfold-letrec def)))]
+    [(list 'if e0 e1 e2) (list 'if (pre-process e0) (pre-process e1) (pre-process e2))]
+    [`(let ((,x ,def)) ,body) `(let ((,x ,(pre-process def))) ,(pre-process body))]
+    [`(letrec ((,x (λ ,(? list? xs) ,def))) ,body) `(let ((,x (rec ,x ,xs ,(pre-process def)))) ,(pre-process body))]
+    [`(letrec ((,x ,def)) ,body) `(let ((,x (rec ,x () ,(pre-process def)))) ,(pre-process body))]
+    [`(λ ,(? list? xs) ,def) `(λ ,xs ,(pre-process def))]
+    [`(rec ,name ,xs ,def) (if (list? xs) `(rec ,name ,xs ,(pre-process def)) `(rec ,name (,xs) ,(pre-process def)))]
     [(cons 'begin es)
      (cons 'begin (for/list [(e es)]
-                   (unfold-letrec e)))]
+                   (pre-process e)))]
     [`(pledge ,call) e]
     [(cons 'syscall (cons (? symbol? call) rst))
      (cons 'syscall
             (cons
              call
              (for/list [(e rst)]
-               (unfold-letrec e))))]
-    [(? list? es)
-     (list 'app (for/list [(e es)]
-                              (unfold-letrec e)))]
+               (pre-process e))))]
+    [(list h es ...)
+     (let ((se (find-syscall h)))
+                  (if se (cons 'syscall (cons h (for/list [(e es)]
+                              (pre-process e))))
+                      (for/list [(e (cons h es))] (pre-process e))))]
     [_ e]))
+
+
+;;;syscall processing
+(define syscalls
+  `((exec ((syscall_execvp 2)))
+    (fork ((syscall_fork 0)))
+    (wait ((syscall_wait 0)))
+    (displayln ((syscall_write 1)))
+    (read-line ((syscall_read 0)))
+    (bind-and-listen '((syscall_bind 1) (syscall_listen 1)))
+    (socket ((syscall_socket 0)))
+    (read-bytes ((syscall_read 2)))
+    (write-bytes ((syscall_write 2)))
+    (close ((syscall_close 1)))
+    (accept ((syscall_accept 1)))
+    (chdir ((syscall_chdir 1)))
+    (wait-for-child ((syscall_wait 0)))))
+
+
+;; Lookup a function in the syscall map
+(define (find-syscall name)
+  (match (assoc name syscalls)
+    [#f #f]
+    [(list _ calls) calls]))
 
 
 
