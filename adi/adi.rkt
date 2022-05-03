@@ -201,6 +201,16 @@
   (if (and (number? a) (number? b))
       (set (= a b))
       (set #t #f)))
+
+(define/simple (string=?^ a b)
+  (if (and (string? a) (string? b))
+      (set (string=? a b))
+      (set #t #f)))
+
+(define/simple (eval-string-append a b)
+  (if (and (string? a) (string? b))
+      (set (string-append a b))
+      (set 'string)))
  
 (define/simple (<=^ a b)
   (if (and (number? a) (number? b))
@@ -313,8 +323,8 @@
 
 (define empty-env #f)
 (define init-env (bind empty-env `((+ ,+^) (* ,*^) (= ,=^) (- ,-^) (<= ,<=^) (>= ,>=^) (< ,<^) (> ,>^) (add1 ,add1^) (sub1 ,sub1^)
-                                           (box ,eval-box) (unbox ,eval-unbox)
-                                           (set-box! ,eval-set-box!)
+                                           (box ,eval-box) (unbox ,eval-unbox) (string=? ,string=?^)
+                                           (set-box! ,eval-set-box!) (string-append ,eval-string-append)
                                            (cons ,eval-cons)
                                            (empty? ,eval-empty?)
                                            (car ,eval-car) (cdr ,eval-cdr)
