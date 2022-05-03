@@ -10,13 +10,12 @@
     [(list 'if e0 e1 e2) (list 'if (unfold-letrec e0) (unfold-letrec e1) (unfold-letrec e2))]
     [`(let ((,x ,def)) ,body) `(let ((,x ,(unfold-letrec def))) ,(unfold-letrec body))]
     [`(letrec ((,x (λ ,(? list? xs) ,def))) ,body) `(let ((,x (rec ,x ,xs ,(unfold-letrec def)))) ,(unfold-letrec body))]
-    [`(letrec ((,x ,def)) ,body) `(letrec ((,x ,(unfold-letrec def))) ,(unfold-letrec body))]
+    [`(letrec ((,x ,def)) ,body) `(let ((,x (rec ,x empty ,(unfold-letrec def)))) ,(unfold-letrec body))]
     [`(λ ,(? list? xs) ,def) `(λ ,xs ,(unfold-letrec def))]
     [`(rec ,name ,xs ,def) (if (list? xs) `(rec ,name ,xs ,(unfold-letrec def)) `(rec ,name (,xs) ,(unfold-letrec def)))]
     [(cons 'begin es)
-     (cons 'begin
-           (cons (for/list [(e es)]
-                   (unfold-letrec e))))]
+     (cons 'begin (for/list [(e es)]
+                   (unfold-letrec e)))]
     [`(pledge ,call) e]
     [(cons 'syscall (cons (? symbol? call) rst))
      (cons 'syscall
