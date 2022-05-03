@@ -6,8 +6,8 @@
     (display ":> ")
     (let [(in (read-line))]
       (match (string-split in #\space)
-        [(list "exit") 'goodbye]
-        [(list "cd" dir) (change-dir dir)]
+        [(cons "exit" '()) 'goodbye]
+        [(cons "cd" (cons dir '())) (change-dir dir)]
         [cmd (run-command cmd)]))))
 
 (define (change-dir dir)
