@@ -189,6 +189,26 @@
       (set (= a b))
       (set #t #f)))
  
+(define/simple (<=^ a b)
+  (if (and (number? a) (number? b))
+      (set (<= a b))
+      (set #t #f)))
+
+(define/simple (>=^ a b)
+  (if (and (number? a) (number? b))
+      (set (>= a b))
+      (set #t #f)))
+
+(define/simple (<^ a b)
+  (if (and (number? a) (number? b))
+      (set (< a b))
+      (set #t #f)))
+
+(define/simple (>^ a b)
+  (if (and (number? a) (number? b))
+      (set (> a b))
+      (set #t #f)))
+ 
 
 (define/simple (-^ a b)
   (set 'nat))
@@ -273,7 +293,7 @@
   
 
 (define empty-env #f)
-(define init-env (bind empty-env `((+ ,+^) (* ,*^) (= ,=^) (- ,-^) (add1 ,add1^) (sub1 ,sub1^)
+(define init-env (bind empty-env `((+ ,+^) (* ,*^) (= ,=^) (- ,-^) (<= ,<=^) (>= ,>=^) (< ,<^) (> ,>^) (add1 ,add1^) (sub1 ,sub1^)
                                            (box ,eval-box) (unbox ,eval-unbox)
                                            (set-box! ,eval-set-box!)
                                            (cons ,eval-cons)
@@ -348,7 +368,7 @@
   
 (define (run-algo e (needs-labelling #f))
   (define g (cdr (run-and-get-graph e needs-labelling)))
-  (hash-ref syscall-map (get-label e)))
+  (hash-ref syscall-map (get-label e) (λ () (set))))
 
 
 

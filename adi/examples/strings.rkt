@@ -1,6 +1,6 @@
 #lang racket
 
-(define f (open-input-file "/bin/ls" '(read)))
+(define f (open-input-file "/bin/ls" (read)))
 (displayln "Openned file")
 
 (define buf (vector 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ))
