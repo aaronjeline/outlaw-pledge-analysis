@@ -124,6 +124,8 @@
 (define (symbolic? v)
   (match v
     ['nat #t]
+    ['string #t]
+    ['char #t] 
     ['⊥ #t]
     ['empty #t]
     [_ #f]))
