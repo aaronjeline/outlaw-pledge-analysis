@@ -498,7 +498,7 @@
     [(closure params body frame)
      (define ρ0 (bind (bind empty-env frame) (zip params args)))
      (eval body ρ0 s (add-edge context l (get-first-control-label body)) seen)]
-    [(rec-closure fname params body frame)
+    [(rec-closure fname params body frame) ;;infinte looping error
      (define p0 (bind (bind empty-env frame) (zip (cons fname params) (cons f args))))
      (eval body p0 s (add-edge context l (get-first-control-label body)) seen)]
     [_ (error "Application of non-function: " f)]))
