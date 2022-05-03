@@ -19,6 +19,7 @@
   (match t
     ['box #t]
     ['cons #t]
+    ['vec #t]
     [_ #f]))
 
 (define/contract (forall s f)
@@ -42,6 +43,7 @@
 (struct env (frame next) #:transparent)
 (struct pointer (loc type) #:transparent)
 (struct cons-cell (car cdr) #:transparent)
+(struct vector-box (length contents) #:transparent)
 (struct closure (params body frame) #:transparent)
 (struct rec-closure (name params body frame) #:transparent)
 (struct procedure-call-context
@@ -157,7 +159,16 @@
                   (match ctxt
                     [(procedure-call-context _ l context s)
                      (set-map (λ (r) (list r l context s)) b)])])))]))
-              
+
+(define-syntax (define/op/list stx)
+  (syntax-case stx ()
+    [(define/op/list (o cur-l args l context s) b)
+     (syntax
+      (define/contract (o args ctxt)
+        (-> (listof value?) procedure-call-context? response?)
+        (match ctxt
+          [(procedure-call-context cur-l l context s)
+           b])))]))
 
 (define-syntax (define/op stx)
   (syntax-case stx ()
@@ -250,6 +261,12 @@
            (let [(s1 (write ptr (cons-cell v1 v2) s0))]
              (set (list ptr l context s1)))))
 
+(define/op/list (eval-vector cur-l members l context s)
+  (letpair (ptr syscalls s0) (alloc 'vec cur-l s)
+           (let [(s1 (write ptr (vector-box (length members) members) s0))]
+             (set (list ptr l context s1)))))
+
+
 
 
 (define (cons-op o)
@@ -298,7 +315,8 @@
                                            (set-box! ,eval-set-box!)
                                            (cons ,eval-cons)
                                            (empty? ,eval-empty?)
-                                           (car ,eval-car) (cdr ,eval-cdr))))
+                                           (car ,eval-car) (cdr ,eval-cdr)
+                                           (vector ,eval-vector))))
 
 
 
