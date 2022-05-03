@@ -19,7 +19,14 @@
     [(list (Defn f l)) (unparse-e l)] ;; not good, how to determine expressions?
     [(cons (Defn f l) rest)
      `(let ((,f ,(unparse-e l))) ,(unparse-ds rest))]))
-   
+
+;;Racket -> exp
+;;unfolds defines to let recs
+(define (unfold e)
+  (match e
+    [(cons (list 'define (list name xs ...) e) rest)  `(let ((name (rec ,name ,xs ,(unfold (list e))))) (unfold rest))]
+    [(list (list 'define (list name xs ...) e)) `(rec ,name ,xs ,(list e))]
+    [(list e) (unfold (list e))]))
 
 ;;Expr -> exp
 ;;takes the ast Expr and converts to the s-expression exp

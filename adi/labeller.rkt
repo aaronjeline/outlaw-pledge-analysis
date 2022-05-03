@@ -15,7 +15,7 @@
     [(list 'if e0 e1 e2) (list 'if (new-label) (label-exp e0) (label-exp e1) (label-exp e2))]
     [`(let ((,x ,def)) ,body) `(let ,(new-label) ((,x ,(label-exp def))) ,(label-exp body))]
     [`(λ ,(? list? xs) ,def) `(λ ,(new-label) ,xs ,(label-exp def))]
-    [`(rec ,name ,xs ,def) `(rec ,(new-label) ,name ,xs ,(label-exp def))]
+    [`(rec ,name ,xs ,def) (if (list? xs) `(rec ,(new-label) ,name ,xs ,(label-exp def)) `(rec ,(new-label) ,name (,xs) ,(label-exp def)))]
     [(cons 'begin es)
      (cons 'begin
            (cons (new-label)
