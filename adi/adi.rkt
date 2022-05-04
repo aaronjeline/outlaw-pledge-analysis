@@ -292,6 +292,7 @@
            (let [(s1 (write ptr (cons-cell v1 v2) s0))]
              (set (list ptr l context s1)))))
 
+
 (define/op/list (eval-vector cur-l members l context s)
   (letpair (ptr syscalls s0) (alloc 'vec cur-l s)
            (let [(s1 (write ptr (vector-box (length members) members) s0))]
@@ -313,6 +314,20 @@
                           [(cons-cell car cdr)
                            (o l context car cdr s)])))
               (type-error 'cons-op 'cons v))])])))
+
+(define (vec-op o)
+  (λ (vs ctxt)
+    (match vs
+      [(list v)
+       (match ctxt
+         [(procedure-call-context _ l context s)
+          (if (pointer-kind v 'vec)
+              (forall (deref v s)
+                      (λ (vec)
+                        (match vec
+                          [(vector-box len mem)
+                           (o l context len mem s)])))
+              (type-error 'vec-op 'vec v))])])))
       
 (define eval-car
   (cons-op (λ (l context car cdr s)
@@ -322,7 +337,11 @@
   (cons-op (λ (l context car cdr s)
              (set (list cdr l context s)))))
 
+(define eval-vector-length
+  (vec-op (λ (l context len mem s)
+            (set (list len l context s)))))
 
+  
 (define/contract (eval-cons? vs ctxt)
   (-> (listof value?) procedure-call-context? response?)
   (match vs
@@ -348,7 +367,7 @@
                                            (empty? ,eval-empty?) (number->string ,eval-number->string)
                                            (car ,eval-car) (cdr ,eval-cdr) (list->string ,eval-list->string)
                                            (integer->char ,eval-integer->char) (is-printable? ,eval-is-printable?)
-                                           (vector ,eval-vector))))
+                                           (vector ,eval-vector) (vector-length ,eval-vector-length))))
 
 
 
@@ -746,12 +765,38 @@
       (close client))))))
       
 (letrec ((loop
-  (let [(client (accept servSock))]
+  (λ () (let [(client (accept servSock))]
     (begin
       (handle-client client)
-      (loop)))))
+      (loop))))))
 
 (loop)))))))
-(require "../deserialize.rkt")
-(define ie (pre-process e))
-(define le (label-exp ie))
+;(require "../deserialize.rkt")
+;(define ie (pre-process e))
+;(define le (label-exp ie))
+;(define s (run-algo le))
+;(car (pledge-insert le s))
+;; try:
+#;(run-algo (label-exp (pre-process '(let ((port 1337))
+
+(let  ((servSock (socket)))
+
+(let ((x (bind-and-listen servSock port)))
+
+(let ((handle-client 
+  (λ (client)
+    (let [(v (vector 0 0 0 0 0))]
+      (begin
+        (read-bytes client v)
+        (displayln "Got msg: ")
+        (displayln (vector->string v))
+        (write-bytes client v)
+        (close client))))))
+
+  (letrec ((loop
+            (λ () (let [(client (accept servSock))]
+                    (begin
+                      (handle-client client)
+                      (loop))))))
+    
+    (loop)))))))))
