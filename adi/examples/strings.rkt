@@ -31,10 +31,10 @@
       (begin
         (read-loop 0 '() got)
         (main-loop))))))
-
+(letrec ((map (λ (lst) (if (empty? lst) lst (cons (integer->char (car lst)) (map (cdr lst)))))))
 (let ((display-buf
   (display (list->string
             (map integer->char (vector->list buf))))))
 
 
-(main-loop)))))))))
+(main-loop))))))))))
