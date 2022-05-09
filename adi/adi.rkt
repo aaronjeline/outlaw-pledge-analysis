@@ -127,11 +127,13 @@
     ['string #t]
     ['char #t] 
     ['⊥ #t]
+    ['⊤ #t]
     ['empty #t]
+    ['list #t] ;; symbolic lists
     [_ #f]))
 
 (define value?
-  (or/c number? boolean? pointer? symbolic? closure? rec-closure? procedure? string? char?))
+  (or/c number? boolean? list? pointer? symbolic? closure? rec-closure? procedure? string? char?))
 
 
 ;; A response is a set of evaluation results,
@@ -292,6 +294,9 @@
            (let [(s1 (write ptr (cons-cell v1 v2) s0))]
              (set (list ptr l context s1)))))
 
+(define/simple (eval-string-split v1 v2)
+  (set 'list))
+
 
 (define/op/list (eval-vector cur-l members l context s)
   (letpair (ptr syscalls s0) (alloc 'vec cur-l s)
@@ -328,14 +333,38 @@
                           [(vector-box len mem)
                            (o l context len mem s)])))
               (type-error 'vec-op 'vec v))])])))
-      
+
 (define eval-car
-  (cons-op (λ (l context car cdr s)
-             (set (list car l context s)))))
+  (λ (vs ctxt)
+    (match vs
+      [(list v)
+       (match ctxt
+         [(procedure-call-context _ l context s)
+          (if (equal? v 'list)
+              (set (list '⊤ l context s))
+              (if (pointer-kind v 'cons)
+              (forall (deref v s)
+                      (λ (cc)
+                        (match cc
+                          [(cons-cell car cdr)
+                           (set (list car l context s))])))
+              (type-error 'cons-op 'cons v)))])])))
 
 (define eval-cdr
-  (cons-op (λ (l context car cdr s)
-             (set (list cdr l context s)))))
+  (λ (vs ctxt)
+    (match vs
+      [(list v)
+       (match ctxt
+         [(procedure-call-context _ l context s)
+          (if (equal? v 'list)
+              (set (list 'list l context s))
+              (if (pointer-kind v 'cons)
+              (forall (deref v s)
+                      (λ (cc)
+                        (match cc
+                          [(cons-cell car cdr)
+                           (set (list cdr l context s))])))
+              (type-error 'cons-op 'cons v)))])])))
 
 (define eval-vector-length
   (vec-op (λ (l context len mem s)
@@ -367,7 +396,7 @@
                                            (empty? ,eval-empty?) (number->string ,eval-number->string)
                                            (car ,eval-car) (cdr ,eval-cdr) (list->string ,eval-list->string)
                                            (integer->char ,eval-integer->char) (is-printable? ,eval-is-printable?)
-                                           (vector ,eval-vector) (vector-length ,eval-vector-length))))
+                                           (vector ,eval-vector) (vector-length ,eval-vector-length) (string-split ,eval-string-split))))
 
 
 
