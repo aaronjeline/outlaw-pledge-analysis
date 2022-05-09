@@ -10,4 +10,4 @@
 
 
 
-(need to add to lib vector, vector->string, string-split, string-append, number->string, list->string, map, integer->char, is-printable?, vector-ref,
+(need to add to string-split, vector-ref,
