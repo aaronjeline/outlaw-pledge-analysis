@@ -370,6 +370,10 @@
   (vec-op (λ (l context len mem s)
             (set (list len l context s)))))
 
+(define/simple (eval-vector-ref v pos)
+  (if (and (vector? v) (number? pos))
+      (set (vector-ref v pos))
+      (set '⊤)))
   
 (define/contract (eval-cons? vs ctxt)
   (-> (listof value?) procedure-call-context? response?)
@@ -395,7 +399,7 @@
                                            (cons ,eval-cons) (vector->string ,eval-vector->string)
                                            (empty? ,eval-empty?) (number->string ,eval-number->string)
                                            (car ,eval-car) (cdr ,eval-cdr) (list->string ,eval-list->string)
-                                           (integer->char ,eval-integer->char) (is-printable? ,eval-is-printable?)
+                                           (integer->char ,eval-integer->char) (is-printable? ,eval-is-printable?) (vector-ref ,eval-vector-ref)
                                            (vector ,eval-vector) (vector-length ,eval-vector-length) (string-split ,eval-string-split))))
 
 
