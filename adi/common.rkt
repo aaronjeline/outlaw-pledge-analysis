@@ -13,7 +13,12 @@
 
 ;; zips two lists together
 (define (zip a b)
-  (map list a b))
+  (with-handlers
+      ([identity (λ (e)
+                   (displayln a)
+                   (displayln b)
+                   (raise e))])
+    (map list a b)))
 
 ;; set union but allows empty arguments
 (define (∪ . xs)

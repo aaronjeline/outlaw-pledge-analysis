@@ -1,6 +1,10 @@
 #lang racket
-(require threading)
-(provide traverse)
+(require threading racket/trace)
+(provide process-file traverse)
+#;(define (trace x)
+    (void))
+
+(define F "/home/aeline/outlaw-pledge-analysis/adi/examples/server.rkt")
 
 (define syscalls
   `((exec ((syscall_execvp 2)))
@@ -8,7 +12,7 @@
     (wait ((syscall_wait 0)))
     (displayln ((syscall_write 1)))
     (read-line ((syscall_read 0)))
-    (bind-and-listen '((syscall_bind 1) (syscall_listen 1)))
+    (bind-and-listen ((syscall_bind 1) (syscall_listen 1)))
     (socket ((syscall_socket 0)))
     (read-bytes ((syscall_read 2)))
     (write-bytes ((syscall_write 2)))
@@ -27,7 +31,34 @@
 (define (process-file filename)
   (~> filename
       preprocess-file
+      remove-requires
       traverse))
+
+(define (remove-requires sexp)
+  (match sexp
+    [(? list?)
+     (~> sexp
+         (map remove-requires _)
+         (filter-not is-requires? _))]
+    [else else]))
+
+(module+ test
+  (require rackunit)
+  (check-equal?
+   (remove-requires
+    `(begin
+       (require "test")
+       (+ 1 2)))
+   `(begin
+      (+ 1 2))))
+      
+
+(define (is-requires? sexp)
+  (match sexp
+    [(cons 'require _) #t]
+    [_ #f]))
+
+
 
 ;; Process the file into an s-expression
 (define (preprocess-file filename)
@@ -67,16 +98,41 @@
     [_ exp]))
 
 (define (build-syscall-wrapper/all ses)
-  `(begin
-     ,@(map build-syscall-wrapper ses)))
+  `(λ ,(build-args (apply + (map second ses)))
+     (begin
+       ,@(reverse (cdr (foldr build-syscall-wrapper (cons 0 '()) (reverse ses)))))))
+
+
+(module+ test
+  (check-equal?
+   (build-syscall-wrapper/all `((write 1)))
+   `(λ (i0) (begin
+              (syscall write i0))))
+  (check-equal?
+   (build-syscall-wrapper/all `((write 2)))
+   `(λ (i0 i1)
+      (begin
+        (syscall write i0 i1))))
+  (check-equal?
+   (build-syscall-wrapper/all `((write 1) (read 1)))
+   `(λ (i0 i1)
+        (begin
+          (syscall write i0)
+          (syscall read i1)))))
 
 ;; Build the λ wrapper for a syscall
-(define (build-syscall-wrapper se)
-  (let ((args (build-args (second se))))
-    `(λ ,args
-       (syscall ,(first se) ,@args))))
+(define (build-syscall-wrapper se acc)
+  (match-let ([(cons offset exprs) acc])
+    (cons
+     (+ (second se) offset)
+     (let [(args (map (λ (i) (ith-arg (+ i offset))) (range (second se))))]
+         (cons `(syscall ,(first se) ,@args) exprs)))))
+    
+
 
 ;; Build a list of argument names
 (define (build-args n)
   (build-list n (λ (i) (string->symbol (format "i~a" i)))))
+(define (ith-arg i)
+  (string->symbol (format "i~a" i)))
 

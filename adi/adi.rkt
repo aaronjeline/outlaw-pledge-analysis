@@ -675,10 +675,10 @@
 
 ;; given two hashsets returns the call that is in only one of them
 (define (get-sub s1 s2)
-  (display "s1\n")
-  (display s1)
-  (display "s2\n")
-  (display s2)
+  ;(display "s1\n")
+  ;(display s1)
+  ;(display "s2\n")
+  ;(display s2)
   (set-first (set-subtract s1 s2)))
 
 ;;takes a label expression and a hash-set of syscalls
@@ -688,46 +688,46 @@
   (-> label-exp? set? (cons/c exp? set?))
   (match e
     [`(prim (label ,l) ,e0) (let ((st (ref l))) (if (< (set-count st) (set-count s))
-                                                    (cons `(begin (pledge ,(get-sub s st)) ,e0) st)
+                                                    (cons `(begin (forbid ,(get-sub s st)) ,e0) st)
                                                     (cons e0 s)))]
     [`(var (label ,l) ,e0) (let ((st (ref l))) (if  (< (set-count st) (set-count s))
-                                                   (cons `(begin (pledge ,(get-sub s st)) ,e0) st)
+                                                   (cons `(begin (forbid ,(get-sub s st)) ,e0) st)
                                                    (cons e0 s)))]
     [`(if (label ,l) ,e0 ,e1 ,e2) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                           (match-let ([(cons (list es0 es1) st1) (pledges-insert (list e0 e1) st)]
                                                                       [(cons (list es0 es2) st2) (pledges-insert (list e0 e2) st)])
-                                                            (cons `(begin (pledge ,(get-sub s st)) (if ,es0 ,es1 ,es2)) (∪ st1 st2)))
+                                                            (cons `(begin (forbid ,(get-sub s st)) (if ,es0 ,es1 ,es2)) (∪ st1 st2)))
                                                           (match-let ([(cons (list es0 es1) s1) (pledges-insert (list e0 e1) s)]
                                                                       [(cons (list es0 es2) s2) (pledges-insert (list e0 e2) s)])
                                                             (cons `(if ,es0 ,es1 ,es2) (∪ s1 s2)))))]
     [`(let (label ,l) ((,x ,def)) ,body) (let ((st (ref l))) (if  (< (set-count st) (set-count s))
                                                                  (match-let
                                                                      ([(cons (list def0 bod) st1) (pledges-insert (list def body) st)])
-                                                                   (cons `(begin (pledge ,(get-sub s st))
+                                                                   (cons `(begin (forbid ,(get-sub s st))
                                                                                  (let ((,x ,def0)) ,bod)) st1))
                                                                  (match-let
                                                                      ([(cons (list def0 bod) s1) (pledges-insert (list def body) s)])
                                                                     (cons `(let ((,x ,def0)) ,bod) s1))))]
     [`(λ (label ,l) ,(? list? xs) ,def) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                                 (match-let ([(cons def0 st0) (pledge-insert def st)])
-                                                                  (cons `(begin (pledge ,(get-sub s st))
+                                                                  (cons `(begin (forbid ,(get-sub s st))
                                                                                 (λ ,xs ,def0)) st0))
                                                                 (match-let ([(cons def0 s0) (pledge-insert def s)])
                                                                   (cons `(λ ,xs ,def0) s0))))] 
     [`(rec (label ,l) ,name ,xs ,def) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                               (match-let ([(cons def0 st0) (pledge-insert def st)])
-                                                                (cons  `(begin (pledge ,(get-sub s st))
+                                                                (cons  `(begin (forbid ,(get-sub s st))
                                                                                (rec ,name ,xs ,def0)) st0))
                                                               (match-let ([(cons def0 s0) (pledge-insert def s)])
                                                                 (cons `(rec ,name ,xs ,def0) s0))))]
     [`(begin (label ,l) ,es ...)  (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                           (match-let ([(cons es0 st0) (pledges-insert es st)])
-                                                            (cons (cons 'begin (cons `(pledge ,(get-sub s st)) es0)) st0))
+                                                            (cons (cons 'begin (cons `(forbid ,(get-sub s st)) es0)) st0))
                                                           (match-let ([(cons es0 s0) (pledges-insert es s)])
                                                             (cons (cons 'begin es0) s0))))]
     [`(syscall (label ,l) ,call ,rst ...) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                                   (match-let ([(cons es0 st0) (pledges-insert rst st)])
-                                                                    (cons `(begin (pledge ,(get-sub s st))
+                                                                    (cons `(begin (forbid ,(get-sub s st))
                                                                                   ,(cons call es0)) st0))
                                                                   
                                                                   (match-let ([(cons es0 s0) (pledges-insert rst s)])
@@ -735,7 +735,7 @@
     [`(app (label ,l) ,es) (let ((st (ref l))) (displayln es) (if (< (set-count st) (set-count s))
                                                                   (match-let ([(cons es0 st0) (pledges-insert es st)])
                                                                     (cons 
-                                                                     `(begin (pledge ,(get-sub s st))
+                                                                     `(begin (forbid ,(get-sub s st))
                                                                              ,es0) st0))
                                                                   (match-let ([(cons es0 s0) (pledges-insert es s)])
                                                                     (cons es0 s0))))]))
