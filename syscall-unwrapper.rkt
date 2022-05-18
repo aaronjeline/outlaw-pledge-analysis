@@ -1,13 +1,14 @@
 #lang racket
 (require threading racket/trace)
-(provide process-file traverse)
+(provide process-file desugar-syscalls)
 #;(define (trace x)
     (void))
 
-(define F "/home/aeline/outlaw-pledge-analysis/adi/examples/server.rkt")
+(define F "/home/aeline/outlaw-pledge-analysis/adi/examples/strings.rkt")
 
 (define syscalls
   `((exec ((syscall_execvp 2)))
+    (open-input-file ((syscall_open 2)))
     (fork ((syscall_fork 0)))
     (wait ((syscall_wait 0)))
     (displayln ((syscall_write 1)))
@@ -32,7 +33,45 @@
   (~> filename
       preprocess-file
       remove-requires
-      traverse))
+      desugar-syscalls
+      desugar-defines))
+
+;; Desugars the top-level defines into lets & letrecs
+;; Folds over the ast apply `desugar-define`
+(define (desugar-defines exp)
+  (match exp
+    [(cons 'begin exprs)
+     `(begin ,(foldr desugar-define 1 exprs))]))
+
+;; Desugar a top-level expression
+(define (desugar-define exp acc)
+  (match exp
+    ;; Constants definition become lets
+    [`(define ,(? symbol? name) ,exp)
+     `(let ((,name ,exp)) ,acc)]
+    ;; Function definitions become let recs
+    [`(define ,(cons name args) ,body)
+     `(let ((,name (rec ,name ,args ,body))) ,acc)]
+    ;; Anything else is added to a begin
+    [else
+     `(begin
+        ,else
+        ,acc)]))
+
+(module+ test
+  (check-equal?
+   (desugar-define `(define x (+ 1 2)) 1)
+   `(let ((x (+ 1 2))) 1))
+  (check-equal?
+   (desugar-define `(define (f x y) (f x y)) 1)
+   `(let ((f (rec f (x y) (f x y)))) 1))
+  (check-equal?
+   (desugar-define `(displayln "hi") 1)
+   `(begin
+      (displayln "hi")
+      1)))
+   
+     
 
 (define (remove-requires sexp)
   (match sexp
@@ -75,6 +114,8 @@
   (define output (read ip))
   (close-input-port ip)
   output)
+
+
       
 
 ;; Remove the #lang line from a list of lines
@@ -87,14 +128,14 @@
   (string=? "#lang racket" line))
   
 ;; Traverse an expression and create λ wrappers for syscalls
-(define (traverse exp)
+(define (desugar-syscalls exp)
   (match exp
     [(? symbol?)
      (match (find-syscall exp)
        [#f exp]
        [se (build-syscall-wrapper/all se)])]
     [(? list?)
-     (map traverse exp)]
+     (map desugar-syscalls exp)]
     [_ exp]))
 
 (define (build-syscall-wrapper/all ses)
@@ -116,9 +157,9 @@
   (check-equal?
    (build-syscall-wrapper/all `((write 1) (read 1)))
    `(λ (i0 i1)
-        (begin
-          (syscall write i0)
-          (syscall read i1)))))
+      (begin
+        (syscall write i0)
+        (syscall read i1)))))
 
 ;; Build the λ wrapper for a syscall
 (define (build-syscall-wrapper se acc)
@@ -126,7 +167,7 @@
     (cons
      (+ (second se) offset)
      (let [(args (map (λ (i) (ith-arg (+ i offset))) (range (second se))))]
-         (cons `(syscall ,(first se) ,@args) exprs)))))
+       (cons `(syscall ,(first se) ,@args) exprs)))))
     
 
 
