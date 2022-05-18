@@ -790,7 +790,7 @@
                                                                   
                                                                   (match-let ([(cons es0 s0) (pledges-insert rst s)])
                                                                     (cons (cons call es0) s0))))]
-    [`(app (label ,l) ,es) (let ((st (ref l))) (displayln es) (if (< (set-count st) (set-count s))
+    [`(app (label ,l) ,es) (let ((st (ref l)))  (if (< (set-count st) (set-count s))
                                                                   (match-let ([(cons es0 st0) (pledges-insert es st)])
                                                                     (cons 
                                                                      `(begin (forbid ,(get-sub s st))
