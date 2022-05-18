@@ -1,40 +1,35 @@
 #lang racket
+(require "stdlib.rkt")
+(define f (open-input-file "/bin/ls" '(read)))
+(display "Openned f\n")
 
-(let ((f (open-input-file "/bin/ls" (read))))
-(let ((d (displayln "Openned file")))
 
-(let ((buf (vector 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 )))
+(define buf (vector 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ))
 
-(let ((is-printable?
-  (λ (c) (and
+(define (is-printable? c)
+  (and
     (>= c 32)
-    (<= c 120)))))
+    (<= c 120)))
 
-(let ((display-run 
-  (λ (run) (begin
+(define (display-run run)
   (displayln (list->string
-               (map integer->char run)))))))
+               (map integer->char run))))
 
-(letrec ((read-loop 
-  (λ ( i run max) (if (< i max)
+(define (read-loop i run max)
+     (if (< i max)
     (if (is-printable? (vector-ref buf i))
         (read-loop (add1 i) (cons (vector-ref buf i) run) max)
       (if (> (length run) 3)
         (display-run run)
         (read-loop (add1 i) '() max)))
-    '()))))
+    '()))
 
-(letrec ((main-loop
+(define (main-loop)
   (let [(got (read-bytes f buf))]
     (if (< got (vector-length buf))
       (read-loop 0 '() got)
       (begin
         (read-loop 0 '() got)
-        (main-loop))))))
-(letrec ((map (λ (lst) (if (empty? lst) lst (cons (integer->char (car lst)) (map (cdr lst)))))))
-(let ((display-buf
-  (display (list->string
-            (map integer->char (vector->list buf))))))
+        (main-loop)))))
 
-
-(main-loop))))))))))
+(main-loop)
