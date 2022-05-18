@@ -1,6 +1,6 @@
 #lang racket
 (require "stdlib.rkt")
-(define f (open-input-file "/bin/ls" '(read)))
+(define f (open-input-file "/bin/ls" read))
 (display "Openned f\n")
 
 
@@ -21,15 +21,15 @@
         (read-loop (add1 i) (cons (vector-ref buf i) run) max)
       (if (> (length run) 3)
         (display-run run)
-        (read-loop (add1 i) '() max)))
-    '()))
+        (read-loop (add1 i) empty max)))
+    empty))
 
 (define (main-loop)
   (let [(got (read-bytes f buf))]
     (if (< got (vector-length buf))
-      (read-loop 0 '() got)
+      (read-loop 0 empty got)
       (begin
-        (read-loop 0 '() got)
+        (read-loop 0 empty got)
         (main-loop)))))
 
 (main-loop)
