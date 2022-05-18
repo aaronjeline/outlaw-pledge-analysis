@@ -124,8 +124,10 @@
 (define (symbolic? v)
   (match v
     ['nat #t]
+    ['bool #t]
     ['string #t]
-    ['char #t] 
+    ['char #t]
+    ['file-port #t]
     ['⊥ #t]
     ['⊤ #t]
     ['empty #t]
@@ -220,6 +222,8 @@
 (define/simple (eval-vector->string a)
 (set 'string))
 
+
+
 (define/simple (eval-list->string a)
 (set 'string))
 
@@ -252,6 +256,9 @@
   (if (and (number? a) (number? b))
       (set (> a b))
       (set #t #f)))
+
+(define/simple (length^ lst)
+  (set 'nat))
  
 
 (define/simple (-^ a b)
@@ -374,6 +381,20 @@
   (if (and (vector? v) (number? pos))
       (set (vector-ref v pos))
       (set '⊤)))
+
+(define/simple (eval-display s)
+  (set 'nat))
+
+(define/simple (and^ a b)
+  (match a
+    [#f (set #f)]
+    ['bool (set #t #f)]
+    [_
+     (match b
+       [#f (set #f)]
+       ['bool (set #t #f)]
+       [_ (set #t)])]))
+           
   
 (define/contract (eval-cons? vs ctxt)
   (-> (listof value?) procedure-call-context? response?)
@@ -390,10 +411,17 @@
      (match ctxt
        [(procedure-call-context _ l context s)  
         (set (list (eq? v 'empty) l context s))])]))
+
+(define/simple (map^ f lst)
+  (set 'list))
   
 
 (define empty-env #f)
 (define init-env (bind empty-env `((+ ,+^) (* ,*^) (= ,=^) (- ,-^) (<= ,<=^) (>= ,>=^) (< ,<^) (> ,>^) (add1 ,add1^) (sub1 ,sub1^)
+                                           (map ,map^) (length ,length^)
+                                           (and ,and^)
+                                           (read nat)
+                                           (display ,eval-display)
                                            (box ,eval-box) (unbox ,eval-unbox) (string=? ,string=?^)
                                            (set-box! ,eval-set-box!) (string-append ,eval-string-append)
                                            (cons ,eval-cons) (vector->string ,eval-vector->string)
@@ -483,7 +511,7 @@
       (eval-step e ρ s context (set-add seen this))))
 
 
-
+    
 (define/contract (eval-step e ρ s context seen)
   (-> exp? env/c store? graph? seen? response?)
   (match e
@@ -504,14 +532,18 @@
   
 
 (define/contract (eval-if l e0 e1 e2 ρ s context seen)
-  (-> symbol? label-exp? label-exp? label-exp? env? store? graph? seen? response?)
+  (-> symbol? label-exp? label-exp? label-exp? env? store? graph? seen? response?) 
   (define guards (eval e0 ρ s (add-edge context l (get-first-control-label e0)) seen))
   (forall guards (pλ (v last-label context′ s0)
-                     (if v
-                         (eval e1 ρ s0 (add-edge context′ last-label (get-first-control-label e1)) seen)
-                         (eval e2 ρ s0 (add-edge context′ last-label (get-first-control-label e2)) seen)))))
-                    
-                     
+                     (let [(if-true (eval e1 ρ s0 (add-edge context′ last-label (get-first-control-label e1)) seen))
+                           (if-false (eval e2 ρ s0 (add-edge context′ last-label (get-first-control-label e2)) seen))]
+                       (if (equal? v 'bool)
+                           (set-union if-true if-false)
+                           (if v
+                               if-true
+                               if-false))))))
+                                    
+                   
 
 (define/contract (eval-let l x def body ρ s context seen)
   (-> symbol? symbol? any/c any/c env/c store? graph? seen? response?)
