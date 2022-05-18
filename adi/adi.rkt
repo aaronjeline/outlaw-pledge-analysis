@@ -714,7 +714,7 @@
   (set-first (set-subtract s1 s2)))
 
 ;;takes a label expression and a hash-set of syscalls
-;; the current max amount of calls available and current set of available calls and inserts pledge statements when needed
+;; the current max amount of calls available and current set of available calls and inserts forbid statements when needed
 ;; also deletes labels as it goes to compress two passes into one
 (define/contract (pledge-insert e s)
   (-> label-exp? set? (cons/c exp? set?))
@@ -779,18 +779,18 @@
   (check-equal? (let ((le (label-exp '(begin (syscall fork) (syscall displayln 5) (syscall exec) (syscall displayln 6)))))
                   (let ((s (run-algo le #f)))
                     (car (pledge-insert le s))))
-                '(begin (fork) (begin (pledge fork) (displayln 5)) (exec) (begin (pledge exec) (displayln 6))))
+                '(begin (fork) (begin (forbid fork) (displayln 5)) (exec) (begin (forbid exec) (displayln 6))))
   (check-equal? (let ((le (label-exp '(let ((f (λ (x) (syscall fork)))) (if (f 1) 3 4)))))
                   (let ((s (run-algo le #f)))
                     (car (pledge-insert le s))))
-                '(let ((f (λ (x) (fork)))) (if (f 1) (begin (pledge fork) 3) (begin (pledge fork) 4))))
+                '(let ((f (λ (x) (fork)))) (if (f 1) (begin (forbid fork) 3) (begin (forbid fork) 4))))
                 
   (check-equal? (let ((le (label-exp '(let ((f (syscall fork))) (if f (syscall displayln 5) (syscall displayln 7))))))
                   (let ((s (run-algo le #f)))
                     (car (pledge-insert le s))))
-                '(let ((f (fork))) (begin (pledge fork) (if f (displayln 5) (displayln (begin (pledge displayln) 7)))))))
+                '(let ((f (fork))) (begin (forbid fork) (if f (displayln 5) (displayln (begin (forbid displayln) 7)))))))
 ;;examples
-;;(let ((x (syscall fork))) (begin (pledge fork) (if (let ((x #t)) (if (= 3 4) #f x)) (+ 3 4) (add1 2))))
+;;(let ((x (syscall fork))) (begin (forbid fork) (if (let ((x #t)) (if (= 3 4) #f x)) (+ 3 4) (add1 2))))
 
 (define (type-error loc t v)
   (error (format "~a: Type Error! Expected: ~a, Got: ~a" loc t (typeof v))))
