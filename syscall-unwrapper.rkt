@@ -4,7 +4,6 @@
 #;(define (trace x)
     (void))
 
-(define F "/home/aeline/outlaw-pledge-analysis/adi/examples/strings.rkt")
 
 (define syscalls
   `((exec ((syscall_execvp 2)))
@@ -43,6 +42,18 @@
     [(cons 'begin exprs)
      `(begin ,(foldr desugar-define 1 exprs))]))
 
+(module+ test
+  (check-equal?
+   (desugar-defines
+    `(begin
+       (define (loop)
+         (begin
+           (loop)))))
+   `(begin
+      (let ((loop (rec loop () (begin (loop)))))
+        1))))
+    
+
 ;; Desugar a top-level expression
 (define (desugar-define exp acc)
   (match exp
@@ -58,6 +69,7 @@
         ,else
         ,acc)]))
 
+
 (module+ test
   (check-equal?
    (desugar-define `(define x (+ 1 2)) 1)
@@ -65,6 +77,9 @@
   (check-equal?
    (desugar-define `(define (f x y) (f x y)) 1)
    `(let ((f (rec f (x y) (f x y)))) 1))
+  (check-equal?
+   (desugar-define `(define (f) (f 1)) 1)
+   `(let ((f (rec f () (f 1)))) 1))
   (check-equal?
    (desugar-define `(displayln "hi") 1)
    `(begin
@@ -176,4 +191,7 @@
   (build-list n (λ (i) (string->symbol (format "i~a" i)))))
 (define (ith-arg i)
   (string->symbol (format "i~a" i)))
+
+
+
 

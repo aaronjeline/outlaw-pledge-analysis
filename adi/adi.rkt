@@ -1,5 +1,5 @@
 #lang racket
-(require threading "common.rkt" "labeller.rkt" "graph.rkt")
+(require threading "common.rkt" "labeller.rkt" "graph.rkt" "exec-syscalls.rkt")
 (provide (all-defined-out))
 
 (define-syntax-rule (letpair (x y z) d b)
@@ -128,6 +128,7 @@
     ['string #t]
     ['char #t]
     ['file-port #t]
+    ['symbolic-vector #t]
     ['⊥ #t]
     ['⊤ #t]
     ['empty #t]
@@ -161,7 +162,7 @@
     [(define-simple (o x) b)
      (syntax (define/contract (o xs ctxt)
                (-> (listof value?) procedure-call-context? response?)
-               (match xs
+               (match xs 
                  [(list x)
                   (match ctxt
                     [(procedure-call-context _ l context s)
@@ -198,6 +199,9 @@
 
 (define/simple (+^ a b)
   (set 'nat))
+
+(define/simple (list->vector^ l)
+  (set 'symbolic-vector))
 
 (define/simple (eval-is-printable? a)
   (set #t #f))
@@ -415,12 +419,22 @@
 (define/simple (map^ f lst)
   (set 'list))
   
+(define/simple (char->integer^ c)
+  (set 'nat))
+
+(define/simple (string->list^ s)
+  (set 'list))
+
+(define/simple (vector->list^ s)
+  (set 'list))
 
 (define empty-env #f)
 (define init-env (bind empty-env `((+ ,+^) (* ,*^) (= ,=^) (- ,-^) (<= ,<=^) (>= ,>=^) (< ,<^) (> ,>^) (add1 ,add1^) (sub1 ,sub1^)
                                            (map ,map^) (length ,length^)
                                            (and ,and^)
                                            (read nat)
+                                           (list->vector ,list->vector^) (string->list ,string->list^)
+                                           (char->integer ,char->integer^) (vector->list ,vector->list^)
                                            (display ,eval-display)
                                            (box ,eval-box) (unbox ,eval-unbox) (string=? ,string=?^)
                                            (set-box! ,eval-set-box!) (string-append ,eval-string-append)
@@ -460,7 +474,19 @@
 (define (build-syscall-map context-graph e)
   (for [(p (syscall-points e))]
     (for [(label (get-backwards-slice context-graph (syscall-point-label p)))]
-      (add-syscalls! label (set (syscall-point-call p))))))
+      (if (is-exec? p)
+          ;; Exec can possibly call every syscall in the future, as it loads a new program from disk
+          (add-all-syscalls! label)
+          (add-syscalls! label (set (syscall-point-call p)))))))
+
+(define (is-exec? call)
+  (match (syscall-point-call call)
+    ['syscall_execvp #t]
+    [_ #f]))
+
+
+(define (add-all-syscalls! label)
+  (add-syscalls! label all-syscalls))
 
 (define/contract (query-syscalls e)
   (-> label-exp? set?)
@@ -865,3 +891,137 @@
                       (loop))))))
     
     (loop)))))))))
+
+
+
+(define strings
+ '(begin
+   (let ((f ((λ (i0 i1) (begin (syscall syscall_open i0 i1))) "/bin/ls" read)))
+     (begin
+       (display "Openned f\n")
+       (let ((buf
+              (vector
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0
+               0)))
+         (let ((is-printable? (rec is-printable? (c) (and (>= c 32) (<= c 120)))))
+           
+          (let ((display-run (λ (r) 1) #;(rec display-run (run) ((λ (i0) (begin (syscall syscall_write i0))) (list->string (map integer->char run))))))
+
+            (let ((read-loop 
+                    (rec
+                     read-loop
+                     (i run max)
+                     (if (< i max)
+                       (if (is-printable? (vector-ref buf i))
+                          1 #;(read-loop (add1 i) (cons (vector-ref buf i) run) max)
+                         (if (> (length run) 3) (display-run run) (read-loop (add1 i) empty max)))
+                       empty))))
+              
+               (let ((main-loop
+                      (rec
+                       main-loop
+                       ()
+                       (let ((got ((λ (i0 i1) (begin (syscall syscall_read i0 i1))) f buf)))
+                         (if (< got (vector-length buf)) (read-loop 0 empty got) (begin (read-loop 0 empty got) (main-loop)))))))
+                 (begin (main-loop) 1))))))))))
+
+
+

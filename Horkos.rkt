@@ -24,7 +24,9 @@
          [le (label-exp ex)]
          [s (run-algo le)]
          [pe (car (pledge-insert le s))]
-         [unused (set-subtract syscalls (set->list (set-map (λ (s) (string->symbol (string-append "syscall_" (symbol->string s)))) s)))])
+         [unused (if (set-member? s 'syscall_execve)
+                     (set)
+                     (set-subtract syscalls (set->list (set-map (λ (s) (string->symbol (string-append "syscall_" (symbol->string s)))) s))))])
     `(begin ,@(set->list (set-map (λ (s) `(forbid ,s)) unused)) ,pe)));; pledge away unused. Can multiple calls be pledged at once?
     
         
