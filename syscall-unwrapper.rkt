@@ -16,8 +16,8 @@
     (socket ((syscall_socket 0)))
     (read-bytes ((syscall_read 2)))
     (write-bytes ((syscall_write 2)))
-    (close ((syscall_close 1)))
-    (accept ((syscall_accept 1)))
+    (close ((syscall_close 1) (syscall_shutdown 0)))
+    (accept ((syscall_accept 1) (syscall_dup 0) (syscall_fcntl 0)))
     (chdir ((syscall_chdir 1)))))
 
 
@@ -203,7 +203,9 @@
      (let [(args (map (λ (i) (ith-arg (+ i offset))) (range (second se))))]
        (cons `(syscall ,(first se) ,@args) exprs)))))
     
-
+(define (writeln x)
+  (write x)
+  (displayln ""))
 
 ;; Build a list of argument names
 (define (build-args n)
@@ -211,10 +213,16 @@
 (define (ith-arg i)
   (string->symbol (format "i~a" i)))
 
-(define (post-process-exp exp)
+(define (post-process-exp exp permit-stmt forbid-stmts)
+  (when permit-stmt
+    (writeln permit-stmt))
+  (when forbid-stmts
+    (for [(forbid-stmt forbid-stmts)]
+      (writeln forbid-stmt)))
   (~> exp
       rebuild-syscall
       resugar-letrecs))
+  
 
 
 
@@ -335,8 +343,8 @@
 (define (resugar-letrecs e)
   (match-let ([(letrec-results e_result defs) (resugar-letrec e (set))])
     (for [(def defs)]
-      (write def))
-    (write e_result)))
+      (writeln def))
+    (writeln e_result)))
 
 (define (resugar-letrec exp (defs (set)))
   (match exp

@@ -35,6 +35,8 @@
     ;; Op1
     ['forbid
      (op1 'forbid)]
+    ['permit
+     (op1 'permit)]
     ['chdir
      (op1 'change_dir)]
     ['exit

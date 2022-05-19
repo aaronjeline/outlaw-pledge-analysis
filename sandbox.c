@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include <sys/prctl.h>
 #ifndef PR_SET_NO_NEW_PRIVS
@@ -69,8 +70,10 @@ struct seccomp_data {
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, syscall_nr)
 
 #define ALLOW_SYSCALL(name) \
-	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_##name, 0, 1), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, name, 0, 1), \
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW)
+
+
 
 #define FORBID_SYSCALL(name) \
     BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, name, 0, 1), \
@@ -82,9 +85,11 @@ struct seccomp_data {
 #define KILL_PROCESS \
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_KILL)
 
-static int sandbox_initd = 0;
+#define PRCTL 157
+#define RT_SIGPROCMASK 14
 
 static void init_sandbox(void) {
+    static int sandbox_initd = 0;
     if (sandbox_initd)
         return;
     sandbox_initd = 1;
@@ -97,11 +102,11 @@ static void init_sandbox(void) {
         .filter = filter,
     };
     if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) { 
-        perror("prctl(PR_SET_NO_NEW_PRIVS)");
+        perror("(init) prctl(PR_SET_NO_NEW_PRIVS)");
         goto failed;
     }
     if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog))  {
-        perror("prctl(SECCOMP)");
+        perror("(init) prctl(SECCOMP)");
         goto failed;
     }
     return;
@@ -110,9 +115,69 @@ failed:
         fprintf(stderr, "SECCOMP_FILTER is not available :(\n");
 }
 
+void log_permits(int *syscalls, int length) {
+    printf("The following calls have been whitelisted: [");
+    for (int i = 0; i < length; i++) 
+        printf("%d,", syscalls[i]);
+    printf("]\n");
+}
+
+
+#define DUP 32
+#define CORE_LEN 2
+static int core_syscalls[CORE_LEN] = {PRCTL, RT_SIGPROCMASK};
+
+void permit_syscall_list(int *syscalls, int length);
+
+void permit_syscalls(int *syscalls, int length) {
+    int *total_syscalls = calloc(sizeof(int), CORE_LEN + length);
+    log_permits(core_syscalls, CORE_LEN);
+    log_permits(syscalls, length);
+    memcpy(total_syscalls, core_syscalls, sizeof(int) * CORE_LEN);
+    memcpy(total_syscalls + CORE_LEN, syscalls, sizeof(int) * length);
+    permit_syscall_list(total_syscalls, (CORE_LEN + length));
+    free(total_syscalls);
+}
+
+
+void permit_syscall_list(int *syscalls, int length) {
+    init_sandbox();
+    log_permits(syscalls, length);
+    struct sock_filter filter[2 + (2 * length)];
+    struct sock_filter ex = EXAMINE_SYSCALL;
+    filter[0] = ex;
+    int ap = 1;
+    
+    for (int i = 0; i < length; i++) {
+        struct sock_filter tmp[2] = {
+            ALLOW_SYSCALL(syscalls[i])
+        };
+        filter[ap] = tmp[0];
+        filter[ap+1] = tmp[1];
+        ap += 2;
+    }
+    
+    struct sock_filter die = KILL_PROCESS;
+    filter[ap] = die;
+
+    assert(ap == ((2 + (2 * length)) - 1));
+
+    struct sock_fprog prog = {
+        .len = (unsigned short) (sizeof(filter) / sizeof(filter[0])),
+        .filter = filter
+    };
+    if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog)) {
+        perror("(permit) prctl(SECCOMP)");
+        if (errno == EINVAL)
+            fputs("SECCOMP_FILTER is not available", stderr);
+        exit(1);
+    }
+}
+
 
 void forbid_syscall(int syscall_number) {
     init_sandbox();
+    printf("%d forbidden\n", syscall_number);
     if (syscall_number < 0) {
         fprintf(stderr, "Invalid Syscall number: %d\n", syscall_number);
         exit(1);
@@ -127,7 +192,7 @@ void forbid_syscall(int syscall_number) {
         .filter = filter,
     };
     if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog)) {
-        perror("prctl(SECCOMP)");
+        perror("(forbid) prctl(SECCOMP)");
         if (errno == EINVAL)
             fprintf(stderr, "SECCOMP_FILTER is not available\n");
         exit(1);

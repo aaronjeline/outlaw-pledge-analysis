@@ -40,6 +40,7 @@
          exit
          chdir
          forbid
+         permit
          
          security-hole
          ;; Op2
@@ -557,6 +558,11 @@
   (%forbid s))
 
 (define (%forbid s) (undefined))
+
+(define (permit s)
+  (%permit s))
+
+(define (%permit s) (undefined))
 
 (define (security-hole s)
   (%security-hole s))

@@ -339,7 +339,7 @@
          char-alphabetic? char-whitespace?
          procedure? vector->string string->vector close
          arg-ref
-         accept exit chdir forbid security-hole))
+         accept exit chdir permit forbid security-hole))
 (define op2
   '(+ - < = cons eq? make-vector vector-ref make-string string-ref
       string-append set-box! quotient remainder

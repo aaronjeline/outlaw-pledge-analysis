@@ -90,6 +90,7 @@
          vector->string string->vector close
          accept chdir forbid security-hole
          arg-ref
+         permit
          ;; Op2
          exec string-split
          string=?
@@ -140,6 +141,7 @@
          flush_stdout
          change_dir
          forbid
+         permit
          system_cwd
          security_hole
          arg_ref)))
