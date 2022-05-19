@@ -1,5 +1,7 @@
 #lang racket
-(require "syscall-unwrapper.rkt" 
+(require
+  threading
+  "syscall-unwrapper.rkt" 
          "adi/adi.rkt" 
          "deserialize.rkt" 
          "syscalls.rkt" 
@@ -7,9 +9,13 @@
 (provide horkos-main)
 
 (define (front-end-main filename)
-  (define src-program (process-file filename))
-  (define result (horkos-main src-program))
-  result)
+  (~> filename
+      process-file
+      horkos-main
+      post-process-exp))
+
+
+
 (module+ test
   (require rackunit)
   (check-not-exn

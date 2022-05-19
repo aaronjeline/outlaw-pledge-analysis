@@ -16,8 +16,8 @@
     [`(let ((,x ,def)) ,body) `(let ,(new-label) ((,x ,(label-exp def))) ,(label-exp body))]
     [`(λ ,(? list? xs) ,def) `(λ ,(new-label) ,xs ,(label-exp def))]
     [`(rec ,name ,xs ,def) (if (list? xs) `(rec ,(new-label) ,name ,xs ,(label-exp def)) `(rec ,(new-label) ,name (,xs) ,(label-exp def)))]
-    [(cons 'begin es)
-     (cons 'begin
+    [(cons (? begin? b) es)
+     (cons b
            (cons (new-label)
                  (for/list [(e es)]
                    (label-exp e))))]
@@ -44,7 +44,7 @@
     [`(let (label ,l) ,_ ,_) l]
     [`(λ (label ,l) ,_ ,_) l]
     [`(rec (label ,l) ,_ ,_ ,_) l]
-    [(cons 'begin (cons `(label ,l) _)) l]
+    [(cons (? begin?) (cons `(label ,l) _)) l]
     [(cons 'syscall (cons `(label ,l) _)) l]
     [`(app (label ,l) ,_) l]))
 
@@ -59,7 +59,7 @@
     [`(let (label ,l) ((,x ,e)) ,_) l]
     [`(λ (label ,l) ,_ ,_) l]
     [`(rec (label ,l) ,_ ,_ ,_) l]
-    [(cons 'begin (cons `(label ,l) _)) l]
+    [(cons (? begin?) (cons `(label ,l) _)) l]
     [(list 'syscall `(label ,l) _ args ...)
      (if (empty? args) l
      (get-first-control-label (first args)))]

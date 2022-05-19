@@ -1,6 +1,6 @@
 #lang racket
 (require threading racket/trace)
-(provide process-file desugar-syscalls)
+(provide process-file desugar-syscalls post-process-exp)
 #;(define (trace x)
     (void))
 
@@ -209,43 +209,72 @@
 (define (ith-arg i)
   (string->symbol (format "i~a" i)))
 
+(define (post-process-exp exp)
+  (~> exp
+      rebuild-syscall))
 
+(define (flatten-begin exp)
+  (define (flattener e)
+    (match e
+      [(list 'begin items ...)
+       (flatten-begin items)]
+      [else (list else)]))
+  (apply append (map flattener exp)))
+
+(module+ test
+  (check-equal? (flatten-begin `((a b)
+                                 (begin
+                                   (a)
+                                   (b))))
+                `((a b) (a) (b))))
+                                  
 
 (define (rebuild-syscall exp)
   (match exp
     [(list 'λ args
            (list 'begin-for-syscall calls ...))
-     (define syscalls (filter syscall? calls))
-     (define forbids (filter forbid? calls))
+     (define flat (flatten-begin calls))
+     (define syscalls (filter syscall? flat))
+     (when (empty? syscalls)
+       (error (format "Empty syscall spec!: ~a" exp)))
+     (define forbids (filter forbid? flat))
      (define call (lookup-spec (map call->spec syscalls)))
      (define result-id (gensym))
      `(λ ,args
         (let [(,result-id (,call ,@args))]
-        (begin
-          ,@forbids
-          ,result-id)))]
-    [(? list)
+          (begin
+            ,@forbids
+            ,result-id)))]
+    [(? list?)
      (map rebuild-syscall exp)]
     [else else]))
 
 
 (define (call->spec call)
   (match call
-    [(list 'syscall name args ...)
-    `(,name ,(length args))]))
+    [(list name args ...)
+     `(,name ,(length args))]))
 
 (module+ test
   (check-equal?
-   (call->spec `(syscall syscall_write i0 i1))
+   (call->spec `(syscall_write i0 i1))
    `(syscall_write 2)))
 
 
       
 
 (define (syscall? e)
+  (define (syscall-symbol? s)
+    (string-prefix? (symbol->string s) "syscall_"))
   (match e
-    [(cons 'syscall _) #t]
+    [(cons (? syscall-symbol?) _) #t]
     [_ #f]))
+
+
+(module+ test
+  (check-true (syscall? `(syscall_write i1)))
+  (check-true (syscall? `(syscall_write)))
+  (check-false (syscall? `(djaflj))))
 
 
 (define (forbid? e)
@@ -255,24 +284,37 @@
 
 (module+ test
   (check-true
+   (match
+       (rebuild-syscall
+        `(λ (i0 i1) (begin-for-syscall (syscall_bind i0) (begin (forbid syscall_bind) (syscall_listen i1)))))
+     [`(λ (i0 i1)
+         (let [(,(? symbol? id1) (bind-and-listen i0 i1))]
+           (begin
+             (forbid syscall_bind)
+             ,(? symbol? id2))))
+      (equal? id1 id2)]
+     [else
+      (display else)
+      #f]))
+  (check-true
    (match 
-   (rebuild-syscall 
-   `(λ (i0) (begin-for-syscall
-              (syscall syscall_write i0))))
+       (rebuild-syscall 
+        `(λ (i0) (begin-for-syscall
+                   (syscall_write i0))))
      [`(λ (i0)
-           (let [(,(? symbol? id1)
-                  (displayln i0))]
-             (begin ,(? symbol? id2))))
+         (let [(,(? symbol? id1)
+                (displayln i0))]
+           (begin ,(? symbol? id2))))
       (equal? id1 id2)]
      [_ #f]))
 
   (check-true
    (match (rebuild-syscall
-   `(λ (i0 i1)
-      (begin-for-syscall
-        (syscall syscall_bind i0)
-        (forbid syscall_another)
-        (syscall syscall_listen i1))))
+           `(λ (i0 i1)
+              (begin-for-syscall
+                (syscall_bind i0)
+                (forbid syscall_another)
+                (syscall_listen i1))))
      [`(λ (i0 i1)
          (let [(,(? symbol? id1)
                 (bind-and-listen i0 i1))]

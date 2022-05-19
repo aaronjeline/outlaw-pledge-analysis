@@ -1,6 +1,12 @@
 #lang racket
-(provide list-ref/set exp? variable? label-exp? label? define/pred prim? label-prim? label-variable? ∪ zip)
+(provide list-ref/set exp? variable? label-exp? label? define/pred prim? label-prim? label-variable? ∪ zip
+         (rename-out [exp-begin? begin?]))
 
+(define (exp-begin? s)
+  (match s
+    ['begin #t]
+    ['begin-for-syscall #t]
+    [_ #f]))
 
 (define-syntax (define/pred stx)
   (syntax-case stx ()
@@ -99,7 +105,7 @@
 (define/pred label-let? (list 'let (? label?) (list (list (? symbol?) (? label-exp?))) (? label-exp?)))
 (define/pred label-λ? (list 'λ (? label?) (? (listof symbol?)) (? label-exp?)))
 (define/pred label-rec? (list 'rec (? label?) (? symbol?) (? (listof symbol?)) (? label-exp?)))
-(define/pred label-begin? (cons 'begin (cons (? label?) (? (listof label-exp?)))))
+(define/pred label-begin? (cons (? exp-begin?) (cons (? label?) (? (listof label-exp?)))))
 (define/pred label-syscall? (cons 'syscall (cons (? label?) (cons (? symbol?) (? (listof label-exp?))))))
 
 (define (label-variable? x)

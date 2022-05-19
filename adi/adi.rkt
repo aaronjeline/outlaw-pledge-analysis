@@ -555,11 +555,7 @@
     [(list 'app (? label? l) (? list? app))
      (eval-app app ρ l s context seen)]))
 
-(define (begin? s)
-  (match s
-    ['begin #t]
-    ['begin-for-syscall #t]
-    [_ #f]))
+
      
 
 (define/contract (eval-if l e0 e1 e2 ρ s context seen)
@@ -694,7 +690,7 @@
       (set-subtract (free body) (set x)))]
     [`(λ ,(? label?) ,(? list? xs) ,def) (set-subtract (free def) (apply set xs))]
     [`(rec ,(? label?) ,f ,xs ,def) (set-subtract (free def) (apply set (cons f xs)))]
-    [(cons 'begin
+    [(cons (? begin?)
            (cons
             (? label?)
             es))
@@ -702,6 +698,11 @@
     [(cons 'syscall (cons (? label?) (cons _ args)))
      (apply ∪ (map free args))]
     [(list 'app (? label?) (? list? app)) (apply ∪ (map free app))]))
+
+(module+ test
+  (check-equal? (free (label-exp `(begin-for-syscall
+                         x)))
+                (set 'x)))
 
 (define (syscall-points e)
   (match e
@@ -713,7 +714,7 @@
      (∪ (syscall-points def) (syscall-points body))]
     [`(λ ,(? label?) ,(? list? xs) ,def) (syscall-points def)]
     [`(rec ,(? label?) ,f ,xs ,def) (syscall-points def)]
-    [(cons 'begin
+    [(cons (? begin?)
            (cons
             (? label?)
             es))
@@ -783,11 +784,11 @@
                                                                                (rec ,name ,xs ,def0)) st0))
                                                               (match-let ([(cons def0 s0) (pledge-insert def s)])
                                                                 (cons `(rec ,name ,xs ,def0) s0))))]
-    [`(begin (label ,l) ,es ...)  (let ((st (ref l))) (if (< (set-count st) (set-count s))
+    [`(,(? begin? b) (label ,l) ,es ...)  (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                           (match-let ([(cons es0 st0) (pledges-insert es st)])
-                                                            (cons (cons 'begin (cons `(forbid ,(get-sub s st)) es0)) st0))
+                                                            (cons (cons b (cons `(forbid ,(get-sub s st)) es0)) st0))
                                                           (match-let ([(cons es0 s0) (pledges-insert es s)])
-                                                            (cons (cons 'begin es0) s0))))]
+                                                            (cons (cons b es0) s0))))]
     [`(syscall (label ,l) ,call ,rst ...) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                                   (match-let ([(cons es0 st0) (pledges-insert rst st)])
                                                                     (cons `(begin (forbid ,(get-sub s st))
