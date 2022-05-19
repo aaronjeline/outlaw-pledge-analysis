@@ -18,15 +18,15 @@
     (write-bytes ((syscall_write 2)))
     (close ((syscall_close 1)))
     (accept ((syscall_accept 1)))
-    (chdir ((syscall_chdir 1)))
-    (wait-for-child ((syscall_wait 0)))))
+    (chdir ((syscall_chdir 1)))))
+
 
 (define (lookup-spec spec)
   (define (matching-spec? entry)
     (equal? spec (second entry)))
   (match (filter matching-spec? syscalls)
     [(list entry) (first entry)]
-    [_ (raise (error (format "Unknown spec: ~a" spec)))]))
+    ['() (raise (error (format "Unknown spec: ~a" spec)))]))
 
 (module+ test
   (check-equal?
@@ -34,7 +34,9 @@
   (check-exn
    exn:fail?
    (λ ()
-     (lookup-spec `((syscall_close 43))))))
+     (lookup-spec `((syscall_close 43)))))
+  (check-equal?
+   (lookup-spec `((syscall_wait 0))) 'wait))
 
 
 
