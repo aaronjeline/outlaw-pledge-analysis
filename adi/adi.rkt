@@ -549,13 +549,18 @@
     [`(rec (label ,l) ,f ,xs ,def)
      (set (list (build-recursive-closure f xs def e ρ) l context s))]
     
-    [(cons 'begin (cons `(label ,l) es)) (eval-begin l es ρ s context seen)]
+    [(cons (? begin?) (cons `(label ,l) es)) (eval-begin l es ρ s context seen)]
     [(cons `syscall (cons `(label ,l) (cons name es)))
      (eval-syscall l name es ρ s context seen)]
     [(list 'app (? label? l) (? list? app))
      (eval-app app ρ l s context seen)]))
 
-  
+(define (begin? s)
+  (match s
+    ['begin #t]
+    ['begin-for-syscall #t]
+    [_ #f]))
+     
 
 (define/contract (eval-if l e0 e1 e2 ρ s context seen)
   (-> symbol? label-exp? label-exp? label-exp? env? store? graph? seen? response?) 

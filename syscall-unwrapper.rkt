@@ -21,6 +21,22 @@
     (chdir ((syscall_chdir 1)))
     (wait-for-child ((syscall_wait 0)))))
 
+(define (lookup-spec spec)
+  (define (matching-spec? entry)
+    (equal? spec (second entry)))
+  (match (filter matching-spec? syscalls)
+    [(list entry) (first entry)]
+    [_ (raise (error (format "Unknown spec: ~a" spec)))]))
+
+(module+ test
+  (check-equal?
+   (lookup-spec `((syscall_bind 1) (syscall_listen 1))) 'bind-and-listen)
+  (check-exn
+   exn:fail?
+   (λ ()
+     (lookup-spec `((syscall_close 43))))))
+
+
 
 ;; Lookup a function in the syscall map
 (define (find-syscall name)
@@ -153,26 +169,27 @@
      (map desugar-syscalls exp)]
     [_ exp]))
 
+
 (define (build-syscall-wrapper/all ses)
   `(λ ,(build-args (apply + (map second ses)))
-     (begin
+     (begin-for-syscall
        ,@(reverse (cdr (foldr build-syscall-wrapper (cons 0 '()) (reverse ses)))))))
 
 
 (module+ test
   (check-equal?
    (build-syscall-wrapper/all `((write 1)))
-   `(λ (i0) (begin
+   `(λ (i0) (begin-for-syscall
               (syscall write i0))))
   (check-equal?
    (build-syscall-wrapper/all `((write 2)))
    `(λ (i0 i1)
-      (begin
+      (begin-for-syscall
         (syscall write i0 i1))))
   (check-equal?
    (build-syscall-wrapper/all `((write 1) (read 1)))
    `(λ (i0 i1)
-      (begin
+      (begin-for-syscall
         (syscall write i0)
         (syscall read i1)))))
 
@@ -191,6 +208,78 @@
   (build-list n (λ (i) (string->symbol (format "i~a" i)))))
 (define (ith-arg i)
   (string->symbol (format "i~a" i)))
+
+(define (resugar-syscalls exp)
+  
+
+(define (rebuild-syscall exp)
+  (match exp
+    [(list 'λ args
+           (list 'begin-for-syscall calls ...))
+     (define syscalls (filter syscall? calls))
+     (define forbids (filter forbid? calls))
+     (define call (lookup-spec (map call->spec syscalls)))
+     (define result-id (gensym))
+     `(λ ,args
+        (let [(,result-id (,call ,@args))]
+        (begin
+          ,@forbids
+          ,result-id)))]))
+
+
+(define (call->spec call)
+  (match call
+    [(list 'syscall name args ...)
+    `(,name ,(length args))]))
+
+(module+ test
+  (check-equal?
+   (call->spec `(syscall syscall_write i0 i1))
+   `(syscall_write 2)))
+
+
+      
+
+(define (syscall? e)
+  (match e
+    [(cons 'syscall _) #t]
+    [_ #f]))
+
+
+(define (forbid? e)
+  (match e
+    [`(forbid ,(? symbol?)) #t]
+    [_ #f]))
+
+(module+ test
+  (check-true
+   (match 
+   (rebuild-syscall 
+   `(λ (i0) (begin-for-syscall
+              (syscall syscall_write i0))))
+     [`(λ (i0)
+           (let [(,(? symbol? id1)
+                  (displayln i0))]
+             (begin ,(? symbol? id2))))
+      (equal? id1 id2)]
+     [_ #f]))
+
+  (check-true
+   (match (rebuild-syscall
+   `(λ (i0 i1)
+      (begin-for-syscall
+        (syscall syscall_bind i0)
+        (forbid syscall_another)
+        (syscall syscall_listen i1))))
+     [`(λ (i0 i1)
+         (let [(,(? symbol? id1)
+                (bind-and-listen i0 i1))]
+           (begin
+             (forbid syscall_another)
+             ,(? symbol? id2))))
+      (equal? id1 id2)]
+     [_ #f])))
+  
 
 
 
