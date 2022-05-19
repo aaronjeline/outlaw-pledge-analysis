@@ -9,7 +9,7 @@
   `((exec ((syscall_execvp 2)))
     (open-input-file ((syscall_open 2)))
     (fork ((syscall_fork 0)))
-    (wait ((syscall_wait 0)))
+    (wait ((syscall_wait4 0)))
     (displayln ((syscall_write 1)))
     (read-line ((syscall_read 0)))
     (bind-and-listen ((syscall_bind 1) (syscall_listen 1)))
@@ -213,7 +213,10 @@
 
 (define (post-process-exp exp)
   (~> exp
-      rebuild-syscall))
+      rebuild-syscall
+      resugar-letrecs))
+
+
 
 (define (flatten-begin exp)
   (define (flattener e)
@@ -325,8 +328,46 @@
              ,(? symbol? id2))))
       (equal? id1 id2)]
      [_ #f])))
-  
 
+(struct letrec-results (main-exp defines) #:transparent)
+(define empty-letrec-result (letrec-results '() '()))
 
+(define (resugar-letrecs e)
+  (match-let ([(letrec-results e_result defs) (resugar-letrec e '())])
+    (for [(def defs)]
+      (write def))
+    (write e_result)))
+
+(define (resugar-letrec exp defs)
+  (match exp
+    [`(let [(,name (rec ,name ,args ,func-body))]
+        ,body)
+     (match-let*
+         ([(letrec-results body1 defs1) (resugar-letrec body defs)]
+          [(letrec-results func-body1 defs2) (resugar-letrec func-body defs1)])
+       (letrec-results body1 (cons `(define (,name ,@args) ,func-body1) defs2)))]
+    [(? list?)
+     (~> exp
+         (map (λ (e) (resugar-letrec e defs)) _)
+         (foldr merge-letrec-results empty-letrec-result _))]
+    [x (letrec-results x defs)]))
+(module+ test
+  (check-equal?
+   (resugar-letrec
+    `(begin
+       (let [(f (rec f (x) (f x)))]
+         (f 1))) '())
+   (letrec-results `(begin (f 1)) (list `(define (f x) (f x))))))
+
+(define (merge-letrec-results r1 r2)
+ 
+  (match (cons r1 r2)
+    [(cons
+      (letrec-results b1 d1)
+      (letrec-results b2 d2))
+     (letrec-results (cons b1 b2)
+                     (append d1 d2))]))
+
+   
 
 

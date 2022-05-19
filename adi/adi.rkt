@@ -1,6 +1,6 @@
 #lang racket
 (require threading "common.rkt" "labeller.rkt" "graph.rkt" "exec-syscalls.rkt")
-(provide (all-defined-out))
+(provide run-algo pledge-insert set-map)
 
 (define-syntax-rule (letpair (x y z) d b)
   (match d

@@ -43,5 +43,5 @@
     filename))
 
 (displayln "#lang racket")
-(print (front-end-main filename))
+(front-end-main filename)
 
