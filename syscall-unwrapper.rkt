@@ -36,7 +36,7 @@
    (λ ()
      (lookup-spec `((syscall_close 43)))))
   (check-equal?
-   (lookup-spec `((syscall_wait 0))) 'wait))
+   (lookup-spec `((syscall_wait4 0))) 'wait))
 
 
 
@@ -77,7 +77,7 @@
   (match exp
     ;; Constants definition become lets
     [`(define ,(? symbol? name) ,exp)
-     `(let ((,name ,exp)) ,acc)]
+     `(let/global ((,name ,exp)) ,acc)]
     ;; Function definitions become let recs
     [`(define ,(cons name args) ,body)
      `(let ((,name (rec ,name ,args ,body))) ,acc)]
@@ -91,7 +91,7 @@
 (module+ test
   (check-equal?
    (desugar-define `(define x (+ 1 2)) 1)
-   `(let ((x (+ 1 2))) 1))
+   `(let/global ((x (+ 1 2))) 1))
   (check-equal?
    (desugar-define `(define (f x y) (f x y)) 1)
    `(let ((f (rec f (x y) (f x y)))) 1))
@@ -330,44 +330,50 @@
      [_ #f])))
 
 (struct letrec-results (main-exp defines) #:transparent)
-(define empty-letrec-result (letrec-results '() '()))
+(define empty-letrec-result (letrec-results '() (set)))
 
 (define (resugar-letrecs e)
-  (match-let ([(letrec-results e_result defs) (resugar-letrec e '())])
+  (match-let ([(letrec-results e_result defs) (resugar-letrec e (set))])
     (for [(def defs)]
       (write def))
     (write e_result)))
 
-(define (resugar-letrec exp defs)
+(define (resugar-letrec exp (defs (set)))
   (match exp
     [`(let [(,name (rec ,name ,args ,func-body))]
         ,body)
      (match-let*
          ([(letrec-results body1 defs1) (resugar-letrec body defs)]
           [(letrec-results func-body1 defs2) (resugar-letrec func-body defs1)])
-       (letrec-results body1 (cons `(define (,name ,@args) ,func-body1) defs2)))]
+       (letrec-results body1 (set-add defs2 `(define (,name ,@args) ,func-body1))))]
+    [`(let/global [(,name ,def)]
+                  ,body)
+     (match-let*
+         ([(letrec-results body1 defs1) (resugar-letrec body defs)]
+          [(letrec-results def1 defs2) (resugar-letrec def defs1)])
+       (letrec-results body1 (set-add defs2 `(define ,name ,def1))))]
     [(? list?)
      (~> exp
          (map (λ (e) (resugar-letrec e defs)) _)
          (foldr merge-letrec-results empty-letrec-result _))]
     [x (letrec-results x defs)]))
+
 (module+ test
   (check-equal?
    (resugar-letrec
     `(begin
        (let [(f (rec f (x) (f x)))]
-         (f 1))) '())
-   (letrec-results `(begin (f 1)) (list `(define (f x) (f x))))))
+         (f 1))) (set))
+   (letrec-results `(begin (f 1)) (set `(define (f x) (f x))))))
 
 (define (merge-letrec-results r1 r2)
- 
   (match (cons r1 r2)
     [(cons
       (letrec-results b1 d1)
       (letrec-results b2 d2))
      (letrec-results (cons b1 b2)
-                     (append d1 d2))]))
+                     (set-union d1 d2))]))
 
-   
+
 
 

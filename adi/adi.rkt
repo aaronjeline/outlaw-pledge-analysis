@@ -544,7 +544,7 @@
     [(? label-prim?) (set (list (get-prim e) (get-label e) context s))]
     [(? label-variable? x) (set (list (env-lookup ρ (get-variable x)) (get-label e) context s))]
     [`(if (label ,l) ,e0 ,e1 ,e2) (eval-if l e0 e1 e2 ρ s context seen)]
-    [`(let (label ,l) ((,x ,def)) ,body) (eval-let l x def body ρ s context seen)]
+    [`(,(? let?) (label ,l) ((,x ,def)) ,body) (eval-let l x def body ρ s context seen)]
     [`(λ (label ,l) ,(? list? xs) ,def) (set (list (build-closure xs def (set->list (free e)) ρ) l context s))]
     [`(rec (label ,l) ,f ,xs ,def)
      (set (list (build-recursive-closure f xs def e ρ) l context s))]
@@ -684,7 +684,7 @@
     [(? label-variable?) (set (get-variable e))]
     [`(if ,(? label?) ,e0 ,e1 ,e2)
      (apply ∪ (map free (list e0 e1 e2)))]
-    [`(let ,(? label?) ((,x ,def)) ,body)
+    [`(,(? let?) ,(? label?) ((,x ,def)) ,body)
      (∪
       (free def)
       (set-subtract (free body) (set x)))]
@@ -710,7 +710,7 @@
     [(? label-variable?) (set)]
     [`(if ,(? label?) ,e0 ,e1 ,e2)
      (apply ∪ (map syscall-points (list e0 e1 e2)))]
-    [`(let ,(? label?) ((,x ,def)) ,body)
+    [`(,(? let?) ,(? label?) ((,x ,def)) ,body)
      (∪ (syscall-points def) (syscall-points body))]
     [`(λ ,(? label?) ,(? list? xs) ,def) (syscall-points def)]
     [`(rec ,(? label?) ,f ,xs ,def) (syscall-points def)]
@@ -764,14 +764,14 @@
                                                           (match-let ([(cons (list es0 es1) s1) (pledges-insert (list e0 e1) s)]
                                                                       [(cons (list es0 es2) s2) (pledges-insert (list e0 e2) s)])
                                                             (cons `(if ,es0 ,es1 ,es2) (∪ s1 s2)))))]
-    [`(let (label ,l) ((,x ,def)) ,body) (let ((st (ref l))) (if  (< (set-count st) (set-count s))
+    [`(,(? let? letkind) (label ,l) ((,x ,def)) ,body) (let ((st (ref l))) (if  (< (set-count st) (set-count s))
                                                                  (match-let
                                                                      ([(cons (list def0 bod) st1) (pledges-insert (list def body) st)])
                                                                    (cons `(begin (forbid ,(get-sub s st))
-                                                                                 (let ((,x ,def0)) ,bod)) st1))
+                                                                                 (,letkind ((,x ,def0)) ,bod)) st1))
                                                                  (match-let
                                                                      ([(cons (list def0 bod) s1) (pledges-insert (list def body) s)])
-                                                                    (cons `(let ((,x ,def0)) ,bod) s1))))]
+                                                                    (cons `(,letkind ((,x ,def0)) ,bod) s1))))]
     [`(λ (label ,l) ,(? list? xs) ,def) (let ((st (ref l))) (if (< (set-count st) (set-count s))
                                                                 (match-let ([(cons def0 st0) (pledge-insert def st)])
                                                                   (cons `(begin (forbid ,(get-sub s st))
