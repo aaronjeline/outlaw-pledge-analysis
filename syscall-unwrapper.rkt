@@ -209,8 +209,7 @@
 (define (ith-arg i)
   (string->symbol (format "i~a" i)))
 
-(define (resugar-syscalls exp)
-  
+
 
 (define (rebuild-syscall exp)
   (match exp
@@ -224,7 +223,10 @@
         (let [(,result-id (,call ,@args))]
         (begin
           ,@forbids
-          ,result-id)))]))
+          ,result-id)))]
+    [(? list)
+     (map rebuild-syscall exp)]
+    [else else]))
 
 
 (define (call->spec call)
